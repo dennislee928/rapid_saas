@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StemForge MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Demucs v4, pay-per-minute, API-first</p>
+        <h1>Split vocals from instrumentals without installing a model.</h1>
+        <p class="lede">
+          MVP dashboard stub for direct R2 upload, queued inference, and zip download.
+          Local mode uses safe stub endpoints only.
+        </p>
+      </section>
+
+      <section class="panel">
+        <label class="dropzone">
+          <input id="file" type="file" accept=".mp3,.wav,.flac,.m4a,.ogg,audio/*" />
+          <span>Drop or choose an audio file</span>
+          <small>Max 50 MB and 10 minutes for MVP.</small>
+        </label>
+
+        <div class="grid">
+          <label>
+            Duration seconds
+            <input id="duration" type="number" min="1" max="600" value="120" />
+          </label>
+          <label>
+            Model
+            <select id="model">
+              <option value="htdemucs">htdemucs vocals/instrumental</option>
+              <option value="htdemucs_ft">htdemucs_ft max quality</option>
+              <option value="htdemucs_6s">htdemucs_6s experimental</option>
+              <option value="mdxnet_vocal">MDX-Net vocal</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="start">Create upload + job stubs</button>
+        <pre id="log">Waiting for file.</pre>
+      </section>
+    </main>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
+

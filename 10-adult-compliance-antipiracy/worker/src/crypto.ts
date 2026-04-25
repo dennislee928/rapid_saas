@@ -25,7 +25,11 @@ export function base64UrlDecode(input: string): Uint8Array {
   const normalized = input.replaceAll("-", "+").replaceAll("_", "/");
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
   const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
 }
 
 async function importHmacKey(secret: string): Promise<CryptoKey> {
@@ -79,4 +83,3 @@ export async function verifyJwt(token: string, secret: string, expectedAudience:
   if (payload.exp <= now) throw new Error("jwt_expired");
   return payload;
 }
-
