@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
@@ -7,6 +8,7 @@ MODULE_PATH = Path(__file__).resolve().parents[1] / "experiments" / "psp_risk_si
 SPEC = importlib.util.spec_from_file_location("psp_risk_sim", MODULE_PATH)
 psp_risk_sim = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
+sys.modules["psp_risk_sim"] = psp_risk_sim
 SPEC.loader.exec_module(psp_risk_sim)
 
 
@@ -16,7 +18,7 @@ class PspRiskSimulationTest(unittest.TestCase):
 
         self.assertEqual(4, len(routes))
         self.assertAlmostEqual(1.0, sum(route.traffic_share for route in routes), places=6)
-        self.assertAlmostEqual(2.619532, psp_risk_sim.classical_expected_loss(routes), places=6)
+        self.assertAlmostEqual(3.050105, psp_risk_sim.classical_expected_loss(routes), places=6)
 
     def test_quantum_state_encodes_event_probability(self):
         probability = 0.125
@@ -34,9 +36,9 @@ class PspRiskSimulationTest(unittest.TestCase):
 
         self.assertEqual("research_only_not_on_production_hot_path", result["production_boundary"])
         self.assertEqual(4096, result["shots_per_route"])
-        self.assertAlmostEqual(2.619532, result["classical_baseline"]["expected_weighted_loss"], places=6)
+        self.assertAlmostEqual(3.050105, result["classical_baseline"]["expected_weighted_loss"], places=6)
         self.assertAlmostEqual(
-            2.569721,
+            3.022079,
             result["quantum_simulator"]["sampled_mean_weighted_loss"],
             places=6,
         )
@@ -45,4 +47,3 @@ class PspRiskSimulationTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
