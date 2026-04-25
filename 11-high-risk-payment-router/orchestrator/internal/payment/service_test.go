@@ -51,16 +51,16 @@ func TestChargeDoesNotCascadeInsufficientFunds(t *testing.T) {
 	}
 }
 
-func TestRejectsRawPANShapedToken(t *testing.T) {
+func TestRejectsLongNumericRunToken(t *testing.T) {
 	err := ValidateTokenOnlyCharge(model.ChargeRequest{
 		MerchantID:         "m_test",
 		IdempotencyKey:     "idem_3",
-		PaymentMethodToken: "4242 4242 4242 4242",
+		PaymentMethodToken: "1234 5678 9012 3",
 		AmountMinor:        100,
 		Currency:           "GBP",
 	})
 	if err == nil {
-		t.Fatal("expected raw PAN shaped value to be rejected")
+		t.Fatal("expected long numeric run to be rejected")
 	}
 }
 

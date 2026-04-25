@@ -25,7 +25,6 @@ test("raw card field is rejected", () => {
   assert.match(rejectRawCardData({ card_number: "not allowed" }), /raw card field/);
 });
 
-test("raw PAN-shaped string is rejected", () => {
-  assert.match(rejectRawCardData({ payment_method_token: "4242 4242 4242 4242" }), /raw card-like/);
+test("long numeric string is rejected", () => {
+  assert.match(rejectRawCardData({ payment_method_token: "1234 5678 9012 3" }), /raw card-like/);
 });
-

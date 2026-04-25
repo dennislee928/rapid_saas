@@ -3,7 +3,6 @@ package payment
 import (
 	"errors"
 	"regexp"
-	"strings"
 
 	"routekit/orchestrator/internal/model"
 )
@@ -33,29 +32,5 @@ func ValidateTokenOnlyCharge(req model.ChargeRequest) error {
 }
 
 func looksLikeRawPAN(value string) bool {
-	if !rawPANPattern.MatchString(value) {
-		return false
-	}
-	digits := strings.NewReplacer(" ", "", "-", "").Replace(value)
-	return len(digits) >= 13 && len(digits) <= 19 && luhn(digits)
-}
-
-func luhn(digits string) bool {
-	sum := 0
-	double := false
-	for i := len(digits) - 1; i >= 0; i-- {
-		n := int(digits[i] - '0')
-		if n < 0 || n > 9 {
-			return false
-		}
-		if double {
-			n *= 2
-			if n > 9 {
-				n -= 9
-			}
-		}
-		sum += n
-		double = !double
-	}
-	return sum%10 == 0
+	return rawPANPattern.MatchString(value)
 }

@@ -12,12 +12,12 @@ import (
 	"routekit/orchestrator/internal/webhook"
 )
 
-func TestChargeEndpointRejectsRawPAN(t *testing.T) {
+func TestChargeEndpointRejectsLongNumericRun(t *testing.T) {
 	service := payment.NewService(routing.NewEngine(routing.DefaultRules()), psp.DefaultSandboxAdapters(), webhook.NewMemoryOutbox())
 	server := NewServer(service, webhook.NewIngressStore())
 	req := httptest.NewRequest(http.MethodPost, "/charges", strings.NewReader(`{
 		"merchant_id":"m_test",
-		"payment_method_token":"4242424242424242",
+		"payment_method_token":"1234567890123",
 		"amount_minor":100,
 		"currency":"GBP",
 		"country":"GB",
