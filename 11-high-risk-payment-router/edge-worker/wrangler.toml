@@ -1,0 +1,11 @@
+name = "routekit-edge"
+main = "src/index.ts"
+compatibility_date = "2026-04-25"
+
+[[kv_namespaces]]
+binding = "IDEMPOTENCY"
+id = "replace-with-kv-namespace-id"
+
+[vars]
+ORCHESTRATOR_URL = "http://localhost:8080"
+

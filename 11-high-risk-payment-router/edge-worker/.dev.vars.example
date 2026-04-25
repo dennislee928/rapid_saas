@@ -1,0 +1,4 @@
+ROUTEKIT_API_KEY_HASH=replace_with_sha256_hash
+ROUTEKIT_HMAC_SECRET=dev_hmac_secret_change_me
+ORCHESTRATOR_SHARED_SECRET=dev_worker_to_orchestrator_secret
+
