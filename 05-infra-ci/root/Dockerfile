@@ -2,9 +2,11 @@
 
 ARG GO_VERSION=1.22
 ARG SERVICE_DIR=.
+ARG CMD_DIR=./cmd/router-api
 
 FROM golang:${GO_VERSION}-alpine AS build
 ARG SERVICE_DIR
+ARG CMD_DIR
 WORKDIR /src
 
 RUN apk add --no-cache ca-certificates git
@@ -18,7 +20,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/router ./cmd/router
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/router ${CMD_DIR}
 
 FROM alpine:3.20 AS runtime
 RUN apk add --no-cache ca-certificates tzdata && adduser -D -H -u 10001 app

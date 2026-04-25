@@ -92,7 +92,7 @@ func TestReplaySkipsDuplicateSideEffects(t *testing.T) {
 }
 
 func TestDLQReplayCanRecoverPoisonEvent(t *testing.T) {
-	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Nanosecond}, nil)
+	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{time.Nanosecond}}, nil)
 	env := mustEnvelope(t, "evt_poison", "idem_poison")
 
 	if err := queue.Publish(context.Background(), "routekit.webhooks", env); err != nil {
