@@ -166,7 +166,7 @@ function enqueue(ctx: ExecutionContext | undefined, env: Env, event: QueueEvent)
   if (!env.EVENTS_QUEUE) {
     return;
   }
-  const send = () => env.EVENTS_QUEUE?.send(event);
+  const send = () => env.EVENTS_QUEUE ? env.EVENTS_QUEUE.send(event) : Promise.resolve(undefined);
   if (ctx) {
     ctx.waitUntil(send());
     return;

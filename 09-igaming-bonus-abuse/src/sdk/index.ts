@@ -35,26 +35,9 @@ export async function collect(options: TiltGuardOptions): Promise<TiltGuardColle
 export async function collectSignals(): Promise<BrowserSignals> {
   const nav = globalThis.navigator;
   const screen = globalThis.screen;
+  const webgl = readWebglInfo();
   const signals: BrowserSignals = {
     sdkVersion: SDK_VERSION,
-    userAgent: nav?.userAgent,
-    language: nav?.language,
-    languages: nav?.languages ? Array.from(nav.languages) : undefined,
-    timezone: safeTimezone(),
-    screen: screen ? {
-      width: screen.width,
-      height: screen.height,
-      colorDepth: screen.colorDepth,
-      devicePixelRatio: globalThis.devicePixelRatio
-    } : undefined,
-    hardwareConcurrency: nav?.hardwareConcurrency,
-    deviceMemory: readDeviceMemory(nav),
-    webdriver: nav?.webdriver,
-    canvasHash: await hashCanvasDemoSafe(),
-    webglVendor: readWebglInfo().vendor,
-    webglRenderer: readWebglInfo().renderer,
-    fontsHash: await hashFontsDemoSafe(),
-    storageQuota: await readStorageQuota(),
     behaviour: {
       mouseEvents: 0,
       mouseStraightLineRatio: 0,
@@ -62,6 +45,32 @@ export async function collectSignals(): Promise<BrowserSignals> {
       pasteEvents: 0
     }
   };
+
+  if (nav?.userAgent) signals.userAgent = nav.userAgent;
+  if (nav?.language) signals.language = nav.language;
+  if (nav?.languages) signals.languages = Array.from(nav.languages);
+  const timezone = safeTimezone();
+  if (timezone) signals.timezone = timezone;
+  if (screen) {
+    signals.screen = {
+      width: screen.width,
+      height: screen.height,
+      colorDepth: screen.colorDepth,
+      devicePixelRatio: globalThis.devicePixelRatio
+    };
+  }
+  if (nav?.hardwareConcurrency) signals.hardwareConcurrency = nav.hardwareConcurrency;
+  const deviceMemory = readDeviceMemory(nav);
+  if (deviceMemory) signals.deviceMemory = deviceMemory;
+  if (typeof nav?.webdriver === "boolean") signals.webdriver = nav.webdriver;
+  const canvasHash = await hashCanvasDemoSafe();
+  if (canvasHash) signals.canvasHash = canvasHash;
+  if (webgl.vendor) signals.webglVendor = webgl.vendor;
+  if (webgl.renderer) signals.webglRenderer = webgl.renderer;
+  const fontsHash = await hashFontsDemoSafe();
+  if (fontsHash) signals.fontsHash = fontsHash;
+  const storageQuota = await readStorageQuota();
+  if (storageQuota) signals.storageQuota = storageQuota;
   return signals;
 }
 
