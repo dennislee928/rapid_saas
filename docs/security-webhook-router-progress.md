@@ -1,6 +1,6 @@
 # Security Webhook Router Progress Tracker
 
-Last reviewed: 2026-04-25
+Last reviewed: 2026-04-26
 
 Source spec: `docs/01-security-webhook-router.md`
 
@@ -27,6 +27,36 @@ No implementation folders were edited for this tracker update.
 - `04-dashboard` renders customer-facing dashboard pages against mock data; it is not yet connected to the router API.
 - `05-infra-ci` contains provider configuration examples and deployment notes, but deployment state was not verified.
 - `06-dev-tooling` contains validation entrypoints, but component discovery still targets `apps`, `services`, `db`, `infra`, and `packages`, not the six migrated root folders.
+
+## Orchestration Progress
+
+Shared-platform Phases 0-8 from `docs/07-expect-tech-base-implementation-plan.md` are now represented in the repo without changing Security Webhook Router implementation folders:
+
+- Phase 0 documentation and ownership: `docs/product-readiness-status.md` maps product owners, local verification paths, shared vocabulary, and current production gaps.
+- Phase 1 ingress: `12-shared-platform/ingress/` defines a local Nginx gateway and Worker edge-policy helpers for request ID propagation, body caps, security headers, rate-limit placeholders, and auth-signal forwarding.
+- Phase 2 events: `12-shared-platform/events/` defines the shared event envelope, memory queue, retry policy, DLQ records, replay behavior, and idempotency tests.
+- Phase 3 hot state: `12-shared-platform/hot-state/` defines Redis and memory helpers for locks, token buckets, idempotency keys, velocity counters, blacklists, and PSP health, plus documented fail-open/fail-closed behavior.
+- Phase 4 proto: `12-shared-platform/proto/` defines versioned shared contracts for `RiskScoringService`, `PaymentRoutingService`, `WebhookDeliveryService`, and `AuditLogService`, with compatibility and service-auth guidance.
+- Phase 5 observability: `12-shared-platform/observability/` defines OpenTelemetry conventions, structured-log schema, SLO targets, alert/dashboard placeholders, and a local trace walkthrough.
+- Phase 6 hardening: `docs/phase-6-product-hardening.md` defines release gates and ticket order. Security Webhook Router hardening is tracked as P6-SWR-001 through P6-SWR-009.
+- Phase 7 crypto payments: `12-shared-platform/crypto-payments/` isolates testnet invoice, listener, reconciliation, sanctions/AML, and PCI-boundary planning from RouteKit and from this product.
+- Phase 8 quantum simulation: `12-shared-platform/quantum-sim/` provides a research-only PSP risk simulation with deterministic data and no production hot-path dependency.
+
+Verification reported by phase workers:
+
+- Events and hot-state packages include Go unit tests for envelope validation, retry/DLQ behavior, idempotency, locks, token buckets, counters, blacklist, and PSP health primitives.
+- Observability Phase 5 is marked `implemented-baseline` in `12-shared-platform/observability/phase-5-acceptance-map.yaml`, with product-code OpenTelemetry middleware still called out as future work.
+- Crypto payments Phase 7 is documented as planning/prototype contract only and testnet-only; no production secrets, mainnet support, or card-routing dependency is claimed.
+- Quantum simulation Phase 8 includes a deterministic script and unittest path under `12-shared-platform/quantum-sim/`.
+
+Remaining Security Webhook Router-specific gaps after shared-platform completion:
+
+- Adopt the shared event envelope for Worker-to-router queue handoff and prove durable enqueue-to-consume behavior.
+- Implement router retry scheduling, terminal DLQ records, authenticated replay, and replay audit.
+- Enforce quotas for inbound events, destination fan-out, replay, retention tier, and payload limits using durable counters.
+- Replace dashboard mock data with live endpoint, delivery-log, quota, and DLQ API data.
+- Wire router runtime storage to the `03-database` sqlc/libSQL model instead of in-memory repositories.
+- Harden destination secret storage, response/log redaction, usage reconciliation, deployment automation, smoke tests, alerts, and rollback runbooks.
 
 ## Spec Section Status
 
