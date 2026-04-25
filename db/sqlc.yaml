@@ -1,0 +1,15 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    schema:
+      - "migrations/000001_init_security_webhook_router.up.sql"
+    queries:
+      - "queries"
+    gen:
+      go:
+        package: "db"
+        out: "sqlc"
+        emit_json_tags: true
+        emit_db_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
