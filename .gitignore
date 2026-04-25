@@ -1,2 +1,49 @@
 .ignore/
 .ignore/*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Build and coverage output
+coverage/
+dist/
+build/
+.next/
+.turbo/
+.cache/
+
+# Python
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Go
+bin/
+*.test
+
+# Rust
+target/
+
+# OS and editor metadata
+.DS_Store
+.idea/
+.vscode/

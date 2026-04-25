@@ -1,0 +1,7 @@
+name = "security-webhook-dashboard"
+compatibility_date = "2026-04-25"
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_API_BASE_URL = "https://security-webhook-router.fly.dev"
+NEXT_PUBLIC_INGRESS_BASE_URL = "https://in.example.com"

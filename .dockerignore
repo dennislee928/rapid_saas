@@ -1,0 +1,17 @@
+.git
+.github
+docs
+scripts
+infra
+tmp
+dist
+coverage
+node_modules
+vendor
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
