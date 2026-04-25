@@ -37,7 +37,7 @@ describe("security webhook ingress worker", () => {
         send: async (message: WebhookQueueMessage) => {
           sent.push(message);
         }
-      } as Queue<WebhookQueueMessage>
+      } as unknown as Queue<WebhookQueueMessage>
     };
 
     const response = await handleRequest(new Request("https://worker.test/webhooks/demo", {

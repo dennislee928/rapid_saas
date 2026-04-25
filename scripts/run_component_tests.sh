@@ -112,7 +112,9 @@ find_existing() {
   done
 
   ((${#existing[@]} == 0)) && return 0
-  find "${existing[@]}" -type f "$@" -print | sort
+  find "${existing[@]}" \
+    \( -name node_modules -o -name .next -o -name .turbo -o -name dist -o -name build -o -name target -o -name vendor \) -prune -o \
+    -type f "$@" -print | sort
 }
 
 run_commands() {

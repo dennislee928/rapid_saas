@@ -352,7 +352,7 @@ export class RateLimiter {
     const record = await this.state.storage.get<{ resetAt: number; used: number }>(input.key);
     const current = !record || record.resetAt <= now ? { resetAt: now + windowMs, used: 0 } : record;
     current.used += 1;
-    await this.state.storage.put(input.key, current, { expirationTtl: Math.ceil(windowMs / 1000) + 5 });
+    await this.state.storage.put(input.key, current);
 
     if (current.used > input.count) {
       return json({ ok: false, retryAfterSeconds: Math.max(1, Math.ceil((current.resetAt - now) / 1000)) });
