@@ -80,7 +80,7 @@ export class GroupHub implements DurableObject {
       return;
     }
 
-    const attachment = ws.deserializeAttachment<SocketAttachment>();
+    const attachment = ws.deserializeAttachment() as SocketAttachment;
     const input = parsed as { t?: string; bbox?: unknown };
     if (input.t === "pong") {
       return;
@@ -134,7 +134,7 @@ export class GroupHub implements DurableObject {
     this.pending.clear();
     const updates = ids.map((id) => this.entities.get(id)).filter((item): item is EntityState => Boolean(item));
     for (const ws of this.getSockets()) {
-      const attachment = ws.deserializeAttachment<SocketAttachment>();
+      const attachment = ws.deserializeAttachment() as SocketAttachment;
       const visible = updates.filter((entity) => inBbox(entity, attachment.bbox));
       if (visible.length === 0) {
         continue;

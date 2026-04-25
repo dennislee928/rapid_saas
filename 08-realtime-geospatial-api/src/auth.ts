@@ -25,7 +25,7 @@ export async function authenticateApiKey(request: Request, env: AuthEnv): Promis
 
   const keys = parseDemoKeys(env.DEMO_API_KEYS);
   const principal = keys[token];
-  if (!principal) {
+  if (!principal?.tenant_id) {
     return null;
   }
 

@@ -1,11 +1,22 @@
 import type { RgeoEntity, RgeoPosition, RgeoSubscription } from "./index";
 
+type PointFeature = {
+  type: "Feature";
+  geometry: { type: "Point"; coordinates: [number, number] };
+  properties: Record<string, unknown>;
+};
+
+type FeatureCollection = {
+  type: "FeatureCollection";
+  features: PointFeature[];
+};
+
 interface GeoJsonSource {
-  setData(data: GeoJSON.FeatureCollection): void;
+  setData(data: FeatureCollection): void;
 }
 
 interface MapboxLikeMap {
-  addSource(id: string, source: { type: "geojson"; data: GeoJSON.FeatureCollection }): void;
+  addSource(id: string, source: { type: "geojson"; data: FeatureCollection }): void;
   getSource(id: string): GeoJsonSource | undefined;
   addLayer(layer: Record<string, unknown>): void;
   getLayer(id: string): unknown;
@@ -84,6 +95,6 @@ function fromEntity(entity: RgeoEntity): RgeoPosition {
   return { e: entity.entity_id, lat: entity.lat, lng: entity.lng, ts: entity.ts, meta: entity.meta };
 }
 
-function emptyCollection(): GeoJSON.FeatureCollection {
+function emptyCollection(): FeatureCollection {
   return { type: "FeatureCollection", features: [] };
 }
