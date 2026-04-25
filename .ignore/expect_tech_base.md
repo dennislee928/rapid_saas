@@ -15,7 +15,7 @@ The target architecture is a distributed anti-fraud and dynamic payment-routing 
 - Event-driven queues and data pipelines.
 - Crypto/TON payment support.
 - Advanced risk simulation, including a research-oriented quantum simulation track.
-
+.
 ## Completion Assessment
 
 | Requirement | Repository status | Notes |
