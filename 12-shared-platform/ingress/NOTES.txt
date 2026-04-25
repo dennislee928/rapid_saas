@@ -1,0 +1,48 @@
+Shared Ingress
+==============
+
+Phase 1 standardizes local ingress behavior before product-specific hardening.
+
+Local Gateway
+-------------
+
+nginx/nginx.conf exposes a local gateway on port 8090 through Docker Compose:
+
+- GET /healthz checks the gateway itself.
+- /security/* proxies to the Security Webhook Router service.
+- /routekit/* proxies to the RouteKit orchestrator.
+
+The gateway sets or preserves x-request-id, mirrors it into x-correlation-id,
+adds security headers, caps request bodies at 1m, and applies a local per-IP
+rate-limit placeholder of 20r/s with a burst of 40.
+
+Protected routes require at least one forwarding auth signal:
+
+- Authorization
+- X-API-Key
+- X-Signature
+- X-Router-Signature
+- X-RouteKit-Sandbox-Signature
+
+Health endpoints are intentionally public. Product services still own full
+tenant, API-key, HMAC, and business authorization checks.
+
+TLS Profile
+-----------
+
+Local Compose runs HTTP only. Production should terminate TLS at Cloudflare or
+at this gateway by mounting certificates and adding an ssl http2 listener that
+uses the same proxy and header policy.
+
+Worker Edge Policy
+------------------
+
+edge-policy/src/index.ts contains the equivalent Worker-first policy helpers:
+
+- request ID propagation
+- content-length based size rejection
+- protected-route auth material checks
+- security response headers
+
+Workers should call applyEdgePolicy() before product handlers and wrap origin
+responses with withSecurityHeaders().
