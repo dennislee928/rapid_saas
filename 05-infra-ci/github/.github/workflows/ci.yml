@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      deploy_fly:
+        description: "Run Fly.io deploy placeholder"
+        required: false
+        default: "false"
+      deploy_cloudflare:
+        description: "Run Cloudflare deploy placeholder"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect project files
+        id: detect
+        shell: bash
+        run: |
+          roots=(01-ingress-worker 02-router-api 03-database 04-dashboard 05-infra-ci 06-dev-tooling)
+
+          go_dirs=()
+          node_dirs=()
+          for root in "${roots[@]}"; do
+            if test -f "$root/go.mod"; then
+              go_dirs+=("$root")
+            fi
+            if test -f "$root/package-lock.json"; then
+              node_dirs+=("$root")
+            fi
+          done
+
+          if ((${#go_dirs[@]})); then
+            printf 'go_dirs=%s\n' "$(IFS=,; echo "${go_dirs[*]}")" >> "$GITHUB_OUTPUT"
+          else
+            echo "go_dirs=" >> "$GITHUB_OUTPUT"
+          fi
+          if ((${#node_dirs[@]})); then
+            printf 'node_dirs=%s\n' "$(IFS=,; echo "${node_dirs[*]}")" >> "$GITHUB_OUTPUT"
+          else
+            echo "node_dirs=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-go@v5
+        if: steps.detect.outputs.go_dirs != ''
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Go fmt check
+        if: steps.detect.outputs.go_dirs != ''
+        shell: bash
+        run: |
+          IFS=',' read -ra dirs <<< "${{ steps.detect.outputs.go_dirs }}"
+          files="$(gofmt -l "${dirs[@]}")"
+          if test -n "$files"; then
+            echo "$files"
+            exit 1
+          fi
+
+      - name: Go test
+        if: steps.detect.outputs.go_dirs != ''
+        shell: bash
+        run: |
+          IFS=',' read -ra dirs <<< "${{ steps.detect.outputs.go_dirs }}"
+          for dir in "${dirs[@]}"; do
+            (cd "$dir" && go test ./...)
+          done
+
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.node_dirs != ''
+        with:
+          node-version: "22"
+
+      - name: Node install
+        if: steps.detect.outputs.node_dirs != ''
+        shell: bash
+        run: |
+          IFS=',' read -ra dirs <<< "${{ steps.detect.outputs.node_dirs }}"
+          for dir in "${dirs[@]}"; do
+            (cd "$dir" && npm ci)
+          done
+
+      - name: Node lint
+        if: steps.detect.outputs.node_dirs != ''
+        shell: bash
+        run: |
+          IFS=',' read -ra dirs <<< "${{ steps.detect.outputs.node_dirs }}"
+          for dir in "${dirs[@]}"; do
+            (cd "$dir" && npm run lint --if-present)
+          done
+
+      - name: Node test
+        if: steps.detect.outputs.node_dirs != ''
+        shell: bash
+        run: |
+          IFS=',' read -ra dirs <<< "${{ steps.detect.outputs.node_dirs }}"
+          for dir in "${dirs[@]}"; do
+            (cd "$dir" && npm test --if-present)
+          done
+
+      - name: Scaffold-only notice
+        if: steps.detect.outputs.go_dirs == '' && steps.detect.outputs.node_dirs == ''
+        run: echo "No Go or Node app code detected; scaffold validation only."
+
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Go router
+        id: detect
+        shell: bash
+        run: |
+          if test -f 02-router-api/go.mod && test -d 02-router-api/cmd/router; then
+            echo "router=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "router=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build router image
+        if: steps.detect.outputs.router == 'true'
+        run: docker build --file 05-infra-ci/root/Dockerfile --build-arg SERVICE_DIR=02-router-api -t security-webhook-router:${{ github.sha }} .
+
+      - name: Docker placeholder
+        if: steps.detect.outputs.router != 'true'
+        run: echo "Dockerfile added; image build will run when 02-router-api/go.mod and 02-router-api/cmd/router exist."
+
+  deploy-placeholders:
+    name: Deploy placeholders
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fly.io deploy placeholder
+        if: inputs.deploy_fly == 'true'
+        run: |
+          echo "Configure FLY_API_TOKEN, then replace this placeholder with:"
+          echo "flyctl deploy --config 05-infra-ci/infra/fly/fly.toml --remote-only"
+
+      - name: Cloudflare deploy placeholder
+        if: inputs.deploy_cloudflare == 'true'
+        run: |
+          echo "Configure CLOUDFLARE_API_TOKEN, then run wrangler deploy from 01-ingress-worker and Pages deploy from 04-dashboard."

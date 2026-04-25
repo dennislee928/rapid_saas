@@ -1,0 +1,14 @@
+{
+  "name": "@rapid-saas/dev-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Developer tooling for the security webhook router repository.",
+  "scripts": {
+    "env:check": "./scripts/validate_env_examples.sh",
+    "test": "./scripts/run_component_tests.sh",
+    "validate": "npm run env:check && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

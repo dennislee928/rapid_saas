@@ -1,0 +1,18 @@
+{
+  "runtime": "edge",
+  "name": "dlq",
+  "deploymentTarget": "v8-worker",
+  "entrypoint": "index.js",
+  "assets": [],
+  "framework": {
+    "slug": "nextjs",
+    "version": "15.4.11"
+  },
+  "environment": {
+    "__NEXT_BUILD_ID": "efK85yRK6ZGwifDMc-wl0",
+    "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "2aEPnJpTjLwPxYpevtWqnTPHiLF82N+IeHXIf9v0Czo=",
+    "__NEXT_PREVIEW_MODE_ID": "74c557c0615587298a759aa6b6f7da1a",
+    "__NEXT_PREVIEW_MODE_SIGNING_KEY": "15283917a72e72630a3ab4e040fc35118627905f1feec375b58e22e96a00aafa",
+    "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "9a6e098e0dede48f2742420a48eba132de892b2e3931c0c323be98214a182170"
+  }
+}
