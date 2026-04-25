@@ -57,7 +57,7 @@ func TestFailedConsumerRetryIsVisibleThenDLQ(t *testing.T) {
 }
 
 func TestReplaySkipsDuplicateSideEffects(t *testing.T) {
-	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{time.Nanosecond}}, nil)
+	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{0}}, nil)
 	recorder := NewSideEffectRecorder()
 	env := mustEnvelope(t, "evt_replay", "tenant:txn_123:webhook")
 
