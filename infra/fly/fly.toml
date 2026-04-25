@@ -4,7 +4,7 @@ kill_signal = "SIGINT"
 kill_timeout = "10s"
 
 [build]
-  dockerfile = "../../Dockerfile"
+  dockerfile = "Dockerfile"
   build-target = "runtime"
   [build.args]
     SERVICE_DIR = "."
