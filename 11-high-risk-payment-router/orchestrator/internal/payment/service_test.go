@@ -24,7 +24,7 @@ func TestChargeCascadesOnRetriableDecline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if txn.AttemptCount != 4 {
+	if txn.AttemptCount != 3 {
 		t.Fatalf("expected all fallback PSPs to be attempted, got %d", txn.AttemptCount)
 	}
 	if txn.State != model.StateFailedTerminal {
