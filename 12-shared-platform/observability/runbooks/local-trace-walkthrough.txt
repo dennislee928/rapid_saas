@@ -1,0 +1,107 @@
+Local trace walkthrough
+Status: feasible baseline without modifying product services
+
+This walkthrough validates that local services can emit OTLP traces and use the
+shared request, trace, tenant, product, operation, outcome, and latency fields.
+Product services still need code-level OpenTelemetry wiring before full
+gateway-to-service-to-queue traces are complete.
+
+Start a local collector
+
+Run the OpenTelemetry Collector with the local config:
+
+docker run --rm \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -v "$PWD/12-shared-platform/observability/collector/otel-collector.local.yaml:/etc/otelcol/config.yaml:ro" \
+  otel/opentelemetry-collector:latest \
+  --config=/etc/otelcol/config.yaml
+
+Expected result: collector logs show OTLP gRPC on 0.0.0.0:4317 and OTLP HTTP
+on 0.0.0.0:4318.
+
+Send a synthetic trace
+
+Use OTLP HTTP to send a minimal span. This verifies the collector path even
+before product code is instrumented.
+
+curl -sS -X POST http://127.0.0.1:4318/v1/traces \
+  -H "content-type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "local-trace-walkthrough"}},
+          {"key": "service.namespace", "value": {"stringValue": "rapid-saas"}},
+          {"key": "deployment.environment.name", "value": {"stringValue": "local"}},
+          {"key": "product", "value": {"stringValue": "shared_platform"}}
+        ]
+      },
+      "scopeSpans": [{
+        "scope": {"name": "manual-otlp-http"},
+        "spans": [{
+          "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+          "spanId": "00f067aa0ba902b7",
+          "name": "POST /local-trace-walkthrough",
+          "kind": 2,
+          "startTimeUnixNano": "1714111200000000000",
+          "endTimeUnixNano": "1714111200050000000",
+          "attributes": [
+            {"key": "request_id", "value": {"stringValue": "req_local_walkthrough"}},
+            {"key": "tenant_id", "value": {"stringValue": "ten_local"}},
+            {"key": "product", "value": {"stringValue": "shared_platform"}},
+            {"key": "operation", "value": {"stringValue": "observability.walkthrough"}},
+            {"key": "outcome", "value": {"stringValue": "success"}},
+            {"key": "http.request.method", "value": {"stringValue": "POST"}},
+            {"key": "url.path", "value": {"stringValue": "/local-trace-walkthrough"}},
+            {"key": "http.response.status_code", "value": {"intValue": "204"}}
+          ]
+        }]
+      }]
+    }]
+  }'
+
+Expected result: the collector debug exporter prints the span with
+trace_id=4bf92f3577b34da6a3ce929d0e0e4736 and the shared attributes.
+
+Exercise a local service with trace headers
+
+When a local product service is running, send W3C trace context and the shared
+request ID. Example for the Security Webhook Router API health endpoint:
+
+curl -i http://127.0.0.1:8080/healthz \
+  -H "traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01" \
+  -H "x-request-id: req_local_walkthrough"
+
+Current limitation: the existing Go router logs request_id, method, path,
+status, and duration, but it does not yet extract trace_id into logs or export
+spans. The next product-code step is to wrap Go HTTP handlers and Workers with
+OpenTelemetry middleware using the conventions in
+conventions/opentelemetry-conventions.txt.
+
+Gateway, service, queue, worker trace shape
+
+The target end-to-end trace should have this shape:
+
+1. Gateway span: POST /ingest/{endpoint_id} or POST /charges.
+2. Service span: validated request and persisted decision/event.
+3. Queue producer span: queue publish <topic>.
+4. Queue consumer span: queue consume <topic> linked to producer context.
+5. Worker or provider span: outbound webhook, PSP authorization, graph-linking
+   task, or WebSocket broadcast.
+
+Every span and every request-completion log must carry the same request_id,
+trace_id, tenant_id, product, operation, and outcome values where known.
+
+Troubleshooting
+
+- Empty collector output: confirm the product process uses
+  OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318 for HTTP exporters or
+  127.0.0.1:4317 for gRPC exporters.
+- Broken trace joins: confirm traceparent is forwarded and queue events copy
+  trace_id plus span_id.
+- High-cardinality metrics: verify dashboards group by product, operation,
+  outcome, and route templates, not raw IDs.
+- Missing tenant dimension: for public unauthenticated rejection paths, use
+  tenant_id=unknown rather than omitting the field.
+
