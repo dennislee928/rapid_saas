@@ -50,3 +50,4 @@ The repo should not try to build every advanced technology at once. The right or
 1. Finish the shared platform primitives that every product needs: ingress policy, event envelope, Redis hot state, observability, and local deployment.
 2. Harden the two strongest commercial verticals first: `09-igaming-bonus-abuse/` and `11-high-risk-payment-router/`.
 3. Treat TON and quantum simulation as separate tracks with explicit research boundaries so they do not destabilize the MVP products.
+.
