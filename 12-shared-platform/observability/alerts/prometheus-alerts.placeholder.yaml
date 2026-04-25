@@ -1,0 +1,71 @@
+groups:
+  - name: rapid-saas-hot-path-slos
+    interval: 30s
+    rules:
+      - alert: RouteKitChargesHighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{product="routekit",operation="charges.create"}[5m]))) > 0.45
+        for: 10m
+        labels:
+          severity: page
+          product: routekit
+          operation: charges.create
+        annotations:
+          summary: RouteKit /charges p95 latency is above 450 ms.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+      - alert: TiltGuardScoreHighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{product="tiltguard",operation="score.create"}[5m]))) > 0.12
+        for: 10m
+        labels:
+          severity: page
+          product: tiltguard
+          operation: score.create
+        annotations:
+          summary: TiltGuard /v1/score p95 latency is above 120 ms.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+      - alert: SecurityWebhookInboundHighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{product="security_webhook_router",operation="inbound.delivery"}[5m]))) > 0.2
+        for: 10m
+        labels:
+          severity: page
+          product: security_webhook_router
+          operation: inbound.delivery
+        annotations:
+          summary: Security Webhook Router inbound delivery p95 latency is above 200 ms.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+      - alert: RealtimeGeospatialUpdateHighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(websocket_update_latency_seconds_bucket{product="realtime_geospatial",operation="websocket.update.broadcast"}[5m]))) > 0.25
+        for: 10m
+        labels:
+          severity: page
+          product: realtime_geospatial
+          operation: websocket.update.broadcast
+        annotations:
+          summary: Realtime geospatial WebSocket update p95 latency is above 250 ms.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+      - alert: HotPathErrorBudgetFastBurn
+        expr: |
+          (
+            sum by (product, operation) (rate(http_server_request_duration_seconds_count{outcome=~"error|timeout"}[1h]))
+            /
+            sum by (product, operation) (rate(http_server_request_duration_seconds_count[1h]))
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: Hot path error or timeout rate is above 1 percent for 1 hour.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+      - alert: QueueMessageAgeHighP95
+        expr: |
+          histogram_quantile(0.95, sum by (le, product, queue) (rate(queue_message_age_seconds_bucket[5m]))) > 30
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: Queue p95 message age is above 30 seconds.
+          runbook: 12-shared-platform/observability/runbooks/local-trace-walkthrough.md
+

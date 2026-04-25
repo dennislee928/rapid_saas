@@ -1,0 +1,89 @@
+version: 1
+owner: shared-platform
+status: phase-5-baseline
+latency_unit: ms
+availability_window: 30d
+hot_paths:
+  - product: tiltguard
+    service: tiltguard-worker
+    operation: score.create
+    route: POST /v1/score
+    description: Real-time bonus-abuse scoring request.
+    latency_targets:
+      p50: 35
+      p95: 120
+      p99: 250
+    availability_target: 99.9
+    error_budget_policy:
+      page_on_burn_rate_1h: 14.4
+      ticket_on_burn_rate_6h: 6
+    success_criteria:
+      - HTTP status is 2xx or an explicit policy rejection with 4xx.
+      - Worker returns a score or deterministic rejection reason.
+    exclude_from_availability:
+      - Invalid auth token.
+      - Malformed JSON.
+      - Tenant disabled by operator.
+  - product: routekit
+    service: routekit-orchestrator
+    operation: charges.create
+    route: POST /charges
+    description: Merchant payment-routing authorization decision.
+    latency_targets:
+      p50: 90
+      p95: 450
+      p99: 900
+    availability_target: 99.95
+    error_budget_policy:
+      page_on_burn_rate_1h: 10
+      ticket_on_burn_rate_6h: 4
+    success_criteria:
+      - Charge is authorized, declined, or routed to a deterministic provider failure response.
+      - Idempotency replay returns the original decision.
+    exclude_from_availability:
+      - Invalid merchant credentials.
+      - Invalid payment token format.
+      - Provider sandbox outage in local development.
+  - product: security_webhook_router
+    service: security-webhook-router
+    operation: inbound.delivery
+    route: POST /ingest/{endpoint_id}
+    description: Inbound security alert accepted and queued for delivery.
+    latency_targets:
+      p50: 40
+      p95: 200
+      p99: 500
+    availability_target: 99.9
+    error_budget_policy:
+      page_on_burn_rate_1h: 14.4
+      ticket_on_burn_rate_6h: 6
+    success_criteria:
+      - Signature is verified.
+      - Event is persisted or queued durably.
+      - Response includes stable request ID.
+    exclude_from_availability:
+      - Invalid HMAC signature.
+      - Oversized payload rejected by policy.
+      - Disabled endpoint.
+  - product: realtime_geospatial
+    service: realtime-geospatial-worker
+    operation: websocket.update.broadcast
+    route: WS /connect
+    description: Time from accepted client update to broadcast receipt by subscribed peers.
+    latency_targets:
+      p50: 60
+      p95: 250
+      p99: 750
+    availability_target: 99.9
+    error_budget_policy:
+      page_on_burn_rate_1h: 14.4
+      ticket_on_burn_rate_6h: 6
+    success_criteria:
+      - Authenticated client update is validated.
+      - Message is broadcast to the intended group.
+      - Stale clients are pruned without blocking active clients.
+    exclude_from_availability:
+      - Unauthorized WebSocket connection.
+      - Client disconnect before ack.
+      - Payload failing protocol validation.
+
