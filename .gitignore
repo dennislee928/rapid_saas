@@ -40,6 +40,11 @@ venv/
 bin/
 *.test
 
+# Nix
+result/
+result-*
+result-*-*
+result-*-*
 # Rust
 target/
 
@@ -49,3 +54,7 @@ target/
 .vscode/
 
 *node_modules/
+/.ignore
+
+/.cache
+*.md
