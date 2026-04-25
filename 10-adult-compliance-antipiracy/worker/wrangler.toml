@@ -1,0 +1,7 @@
+name = "aegis-adult-mvp"
+main = "src/index.ts"
+compatibility_date = "2026-04-25"
+
+[vars]
+AEGIS_ENV = "local"
+

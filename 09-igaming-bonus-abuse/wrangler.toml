@@ -1,0 +1,24 @@
+name = "tiltguard-mvp"
+main = "src/worker/index.ts"
+compatibility_date = "2026-04-25"
+
+[vars]
+TOKEN_SECRET = "dev-only-token-secret"
+TENANTS_JSON = '''
+{
+  "dev_tiltguard_demo_key": {
+    "id": "ten_demo",
+    "name": "Demo Operator",
+    "rules": {
+      "allowBelow": 30,
+      "denyAtOrAbove": 70,
+      "countryDenylist": [],
+      "disposableEmailDomains": ["mailinator.com", "tempmail.test"]
+    }
+  }
+}
+'''
+
+[[queues.producers]]
+binding = "EVENTS_QUEUE"
+queue = "tiltguard-events"

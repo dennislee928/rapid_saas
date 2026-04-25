@@ -1,32 +1,14 @@
-# Security Webhook Router
+# Rapid SaaS Implementation Workspace
 
-Repository-level developer tooling for the security webhook router monorepo.
+This repository is split into six root implementation folders so parallel agents can work without overlapping write scopes.
 
-## Quickstart
+| Folder | Ownership |
+| --- | --- |
+| `01-ingress-worker/` | Cloudflare Worker webhook ingress |
+| `02-router-api/` | Go queue consumer, admin API, rules, delivery |
+| `03-database/` | SQLite/libSQL schema, seeds, sqlc query assets |
+| `04-dashboard/` | Next.js dashboard |
+| `05-infra-ci/` | Fly.io, Cloudflare, Docker, CI, deployment templates |
+| `06-dev-tooling/` | Local validation, root tooling snapshots, developer scripts |
 
-1. Review environment variables:
-
-   ```sh
-   cp .env.example .env
-   ```
-
-2. Run all repository validation checks:
-
-   ```sh
-   make validate
-   ```
-
-3. Run component tests only:
-
-   ```sh
-   make test
-   ```
-
-The validation scripts discover component manifests under `apps/`, `services/`, `db/`, `infra/`, and `packages/` when those directories exist. If no components are present yet, the test runner exits successfully with a no-op message.
-
-## Tooling
-
-- `Makefile` provides the stable local entrypoint.
-- `scripts/run_component_tests.sh` discovers and runs tests for Node, Python, Go, Rust, and Composer components when test configuration is present.
-- `scripts/validate_env_examples.sh` validates that environment examples exist and do not contain obvious committed secret values.
-- `package.json` exposes equivalent npm scripts for environments that prefer a package task runner.
+Planning and progress documentation remains in `docs/`.

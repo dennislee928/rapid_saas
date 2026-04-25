@@ -1,0 +1,136 @@
+:root {
+  --ink: #17130f;
+  --muted: #6b5f52;
+  --paper: #fff7e8;
+  --accent: #d85822;
+  --accent-2: #0f766e;
+  --line: rgba(23, 19, 15, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(circle at top left, rgba(216, 88, 34, 0.22), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.2), transparent 28rem),
+    var(--paper);
+}
+
+.shell {
+  width: min(1080px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 72px 0;
+}
+
+.hero {
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  color: var(--accent-2);
+  font: 700 0.82rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 6.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.07em;
+}
+
+.lede {
+  color: var(--muted);
+  font-size: 1.18rem;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+.panel {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: rgba(255, 252, 244, 0.78);
+  box-shadow: 0 24px 70px rgba(55, 38, 23, 0.13);
+}
+
+.dropzone {
+  display: grid;
+  gap: 8px;
+  place-items: center;
+  min-height: 180px;
+  border: 2px dashed rgba(216, 88, 34, 0.45);
+  border-radius: 22px;
+  background: rgba(255, 247, 232, 0.72);
+  cursor: pointer;
+}
+
+.dropzone input {
+  display: none;
+}
+
+.dropzone span {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+small,
+label {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0 14px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  color: #fffaf0;
+  background: var(--accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+pre {
+  overflow: auto;
+  min-height: 160px;
+  margin: 20px 0 0;
+  padding: 18px;
+  border-radius: 18px;
+  color: #f8efe3;
+  background: #201812;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 36px 0;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+

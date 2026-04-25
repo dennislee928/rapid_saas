@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS auth_tokens;
+DROP TABLE IF EXISTS webhook_outbox;
+DROP TABLE IF EXISTS pricing_rules;
+DROP TABLE IF EXISTS jobs;
+DROP TABLE IF EXISTS credit_ledger;
+DROP TABLE IF EXISTS users;
+
