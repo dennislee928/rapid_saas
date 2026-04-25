@@ -1,1 +1,52 @@
-這份技術清單非常硬核，完全是現代企業級微服務與高頻交易系統的標配。要把這些高端技術塞進一個具備商業價值的 SaaS，最完美的載體就是**「分散式高頻防詐騙與動態支付路由引擎 (Distributed Anti-Fraud & Dynamic Payment Router)」**。高風險產業（iGaming 博弈、成人、受管制品）的特點是：流量大、攻擊多（DDoS、撞庫）、金流極度依賴穩定性。我們可以把這套 SaaS 當作一個高吞吐量的黑盒子，為客戶提供穩定且安全的業務入口。以下是如何將你提到的技術完美嵌合進這個 SaaS 架構的藍圖，以及它們負責解決的具體痛點：一、 統一接入與邊緣層 (Edge & Ingress Layer)誠如先前架構設計的最佳實踐，系統必須有一個強大的「統一入口 (Unified Entry Point)」來處理所有外部流量，再進行分發。Nginx (或 Envoy) 作為 Ingest Gateway：作為所有外部 API 請求、Webhook 與加密貨幣節點的唯一入口。負責 SSL 終止 (SSL Termination)、L7 的初步 DDoS 防護、以及最外層的 Rate Limiting。SDN (Software-Defined Networking)：在高風險產業，你的 API 節點很容易成為駭客或競爭對手的攻擊目標。透過 SDN 技術，你可以動態調度跨雲網路（例如 AWS 與 GCP 之間的內網互聯），一旦某個地區的節點遭受 L3/L4 攻擊，可以透過 BGP Anycast 與軟體定義的路由規則，瞬間將流量清洗或導流至備援的資料中心，對客戶達到「零感知」的網路切換。二、 即時處理與微服務通訊 (Real-Time Processing)進入內網後，是核心業務邏輯的戰場，這裡要求的是「極致的低延遲」。gRPC：你的系統不會是單體架構。負責「裝置指紋解析」的 Go 服務與負責「支付閘道路由」的 Rust 服務之間，拋棄傳統的 HTTP/REST，全面採用 gRPC (基於 HTTP/2 與 Protobuf)。這能將微服務間的內部通訊延遲壓縮到微秒級，這對於博弈首儲的即時判定至關重要。Redis：作為系統的「熱區」。分散式鎖 (Distributed Lock)： 防止駭客利用腳本在 10 毫秒內同時發起 100 筆提款請求（併發重放攻擊）。即時特徵黑名單： 以 $O(1)$ 的時間複雜度，攔截已知的惡意 IP、裝置指紋或外洩的信用卡 BIN 碼。WebSocket：提供商戶後台的即時戰情室 (Dashboard)。當發生大規模刷卡失敗或偵測到異常的資金流動聚合時，透過 WebSocket 建立的長連線，將警報即時推播給風險控制人員，而不是讓前端不斷 polling。三、 非同步解耦與資料管線 (Event-Driven & Data Pipeline)高可用性的關鍵在於「不要讓非主線任務卡住主線流程」。Kafka / Message Queue (MQ)：扮演「削峰填谷」的角色。當博弈大賽或成人網站流量爆發時，大量的「使用者行為日誌」與「稽核追蹤紀錄」不該直接寫入資料庫。將這些資料以 Event 的形式丟入 Kafka，由後端的 Worker 慢慢消化寫入 Data Lake，同時觸發各種非同步的後續動作（例如：發送 Email 通知、觸發 KYC 複審流程）。這確保了分散式系統在極限負載下依然能回應核心的 API 請求。四、 前沿科技與次世代金融 (Next-Gen Tech)這部分能讓這個 SaaS 從「好用的工具」提升為「具備深厚護城河的科技產品」。TON (The Open Network) / Crypto Payments： (推測你提到的 Toon 是指區塊鏈或 Web3 相關的 TON)高風險電商與博弈極度依賴加密貨幣金流。你可以整合 TON 區塊鏈的智能合約或閃電網路，提供秒級結算的 USDC/USDT 支付路由。這完美解決了傳統信用卡閘道高達 3%-5% 的手續費以及隨時被凍結的風險。Quantum Simulation (量子模擬)：這是一個極具前瞻性且適合學術結合的賣點。在 Fintech 與 iGaming 領域，風險定價模型（Risk Pricing）至關重要。你可以利用量子運算平台（如 IBM Quantum 或 AWS Braket 的模擬器），運行蒙地卡羅模擬 (Monte Carlo Simulations) 來處理極度複雜的博弈賠率風險暴露，或者模擬龐大的洗錢網路資金流動路徑。這在傳統 CPU 上需要耗費數小時的運算，未來能透過量子演算法（如量子隨機漫步）大幅縮短時間。商業價值與職涯戰略 (針對英國/蘇格蘭)將這些技術整合進一個展示型專案（或實際營運的 SaaS），對你的職涯有毀滅性的競爭力：Fintech / RegTech 敲門磚： 倫敦是全球 Fintech 首都，愛丁堡（靠近 Glasgow）也有強大的金融後台與資料中心。這個架構完美契合 Revolut, Monzo 等挑戰者銀行的底層需求。iGaming 巨頭的夢幻履歷： 英國合法博弈產業龐大（如 Flutter Entertainment, Entain），他們極度渴望能處理高頻交易 (gRPC, Redis)、分散式系統 (Kafka, 跨雲容災) 以及反詐欺的資深人才。MSc 畢業專題/論文： 將「量子模擬在預測分散式洗錢網路徑上的應用」或是「基於 Rust 與 gRPC 的高頻防詐微服務架構」作為你在 Glasgow 的研究專案，這會讓你的學歷與實戰經驗產生強烈的化學反應。
+# Expected Technical Base Assessment
+
+Updated: 2026-04-26
+
+This note tracks whether the original technical-base idea is complete in this repository. The short answer is: **not complete yet**. The product specs in `docs/` are detailed, and several MVP scaffolds exist, but the full enterprise-grade platform described here still needs shared infrastructure and production hardening.
+
+## Original Direction
+
+The target architecture is a distributed anti-fraud and dynamic payment-routing SaaS for high-risk but legal verticals such as iGaming, adult/creator compliance, regulated retail, and high-risk e-commerce. The intended system combines:
+
+- Unified edge and ingress gateway.
+- Low-latency microservice communication.
+- Redis-backed hot state and locks.
+- WebSocket operations surfaces.
+- Event-driven queues and data pipelines.
+- Crypto/TON payment support.
+- Advanced risk simulation, including a research-oriented quantum simulation track.
+
+## Completion Assessment
+
+| Requirement | Repository status | Notes |
+| --- | --- | --- |
+| Unified edge ingress | Partially implemented | Cloudflare Workers exist per product, but there is no shared Envoy/Nginx gateway or common ingress policy package. |
+| Nginx or Envoy as ingest gateway | Not implemented | Needs a shared gateway config, TLS policy, L7 rate limits, request normalization, and local Docker integration. |
+| SDN / multi-cloud failover | Not implemented | Specs mention multi-region resilience, but there are no BGP/Anycast, failover, or traffic-drain runbooks. |
+| gRPC internal service mesh | Not implemented | Go services currently expose local HTTP or in-memory interfaces. No protobuf contracts exist. |
+| Redis hot state | Not implemented | No shared Redis module for locks, blacklists, token buckets, PSP health, or velocity counters. |
+| WebSocket realtime dashboard | Partially implemented | `08-realtime-geospatial-api/` uses Durable Objects and WebSockets; fraud/payment dashboards still use static or polling-style scaffolds. |
+| Kafka / message queue backbone | Partially implemented | Several docs mention Cloudflare Queues or worker stubs, but no shared event envelope, retry, DLQ, or Kafka-compatible local stack exists. |
+| Anti-fraud risk engine | Partially implemented | TiltGuard has rule-based scoring and graph-linker scaffolds; no production model training or feedback loop yet. |
+| Dynamic payment routing | Partially implemented | RouteKit has a token-only orchestrator, routing rules, PSP adapter interfaces, and sandbox tests; no real PSP/Basis Theory integration yet. |
+| Adult compliance / anti-piracy | Partially implemented | GateKeep/Reclaim scaffolds exist with legal boundaries; provider integrations and production crawl operations are not wired. |
+| TON / crypto payments | Not implemented | No wallet, webhook, settlement, risk, or reconciliation flow exists. |
+| Quantum simulation | Not implemented | No research prototype, notebook, or product boundary exists. |
+| Production observability | Partially implemented | Product docs describe needs, but shared traces, metrics, alerting, SLOs, and dashboards are not implemented. |
+| Compliance evidence | Partially implemented | Docs and schemas mention audit logs; no full evidence export or retention controls are production-ready. |
+
+## Decision
+
+The requirements in this file are **not complete**. They should be treated as a platform roadmap, not as a finished specification.
+
+The implementation plan is now tracked in:
+
+`docs/07-expect-tech-base-implementation-plan.md`
+
+## Practical Scope
+
+The repo should not try to build every advanced technology at once. The right order is:
+
+1. Finish the shared platform primitives that every product needs: ingress policy, event envelope, Redis hot state, observability, and local deployment.
+2. Harden the two strongest commercial verticals first: `09-igaming-bonus-abuse/` and `11-high-risk-payment-router/`.
+3. Treat TON and quantum simulation as separate tracks with explicit research boundaries so they do not destabilize the MVP products.
