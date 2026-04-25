@@ -25,6 +25,7 @@ dist/
 build/
 .next/
 .turbo/
+.cache/
 
 # Python
 .pytest_cache/

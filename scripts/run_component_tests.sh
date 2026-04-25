@@ -81,7 +81,7 @@ discover_go() {
   local manifest dir
   while IFS= read -r manifest; do
     dir="$(dirname "$manifest")"
-    add_command "$dir" "go test ./..."
+    add_command "$dir" "GOCACHE=\"$ROOT_DIR/.cache/go-build\" GOMODCACHE=\"$ROOT_DIR/.cache/go-mod\" go test ./..."
   done < <(find_existing -name go.mod)
 }
 
