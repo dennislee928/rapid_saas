@@ -57,7 +57,7 @@ func TestFailedConsumerRetryIsVisibleThenDLQ(t *testing.T) {
 }
 
 func TestReplaySkipsDuplicateSideEffects(t *testing.T) {
-	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{0}}, nil)
+	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{time.Nanosecond}}, nil)
 	recorder := NewSideEffectRecorder()
 	env := mustEnvelope(t, "evt_replay", "tenant:txn_123:webhook")
 
@@ -92,7 +92,7 @@ func TestReplaySkipsDuplicateSideEffects(t *testing.T) {
 }
 
 func TestDLQReplayCanRecoverPoisonEvent(t *testing.T) {
-	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{time.Nanosecond}}, nil)
+	queue := NewMemoryQueue(RetryPolicy{Delays: []time.Duration{0}}, nil)
 	env := mustEnvelope(t, "evt_poison", "idem_poison")
 
 	if err := queue.Publish(context.Background(), "routekit.webhooks", env); err != nil {

@@ -16,7 +16,7 @@ import (
 
 type RedisStore struct {
 	addr      string
-	password string
+	password  string
 	db        int
 	tlsConfig *tls.Config
 	timeout   time.Duration
