@@ -1,0 +1,6 @@
+route_id,psp,region,traffic_share,success_rate,chargeback_rate,avg_amount,incident_loss
+r_001,atlaspay,NA,0.34,0.982,0.006,74.20,9.00
+r_002,bridgepay,EU,0.27,0.971,0.009,63.80,7.50
+r_003,cobaltrail,APAC,0.21,0.956,0.014,48.60,6.25
+r_004,delta_acquire,LATAM,0.18,0.943,0.019,39.10,5.75
+
