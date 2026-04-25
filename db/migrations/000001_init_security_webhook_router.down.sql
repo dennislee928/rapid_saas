@@ -1,5 +1,7 @@
 PRAGMA foreign_keys = OFF;
 
+DROP TRIGGER IF EXISTS trg_rule_destination_same_tenant_update;
+DROP TRIGGER IF EXISTS trg_rule_destination_same_tenant_insert;
 DROP TABLE IF EXISTS dlq;
 DROP TABLE IF EXISTS usage_counter;
 DROP TABLE IF EXISTS delivery_log;

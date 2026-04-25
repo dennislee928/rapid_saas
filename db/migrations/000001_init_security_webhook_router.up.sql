@@ -76,6 +76,34 @@ CREATE UNIQUE INDEX idx_rule_endpoint_position ON rule(endpoint_id, position);
 CREATE INDEX idx_rule_endpoint_enabled ON rule(endpoint_id, enabled, position);
 CREATE INDEX idx_rule_destination ON rule(destination_id);
 
+CREATE TRIGGER trg_rule_destination_same_tenant_insert
+BEFORE INSERT ON rule
+WHEN NEW.destination_id IS NOT NULL
+BEGIN
+  SELECT RAISE(ABORT, 'rule destination must belong to endpoint tenant')
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM endpoint e
+    JOIN destination d ON d.tenant_id = e.tenant_id
+    WHERE e.id = NEW.endpoint_id
+      AND d.id = NEW.destination_id
+  );
+END;
+
+CREATE TRIGGER trg_rule_destination_same_tenant_update
+BEFORE UPDATE OF endpoint_id, destination_id ON rule
+WHEN NEW.destination_id IS NOT NULL
+BEGIN
+  SELECT RAISE(ABORT, 'rule destination must belong to endpoint tenant')
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM endpoint e
+    JOIN destination d ON d.tenant_id = e.tenant_id
+    WHERE e.id = NEW.endpoint_id
+      AND d.id = NEW.destination_id
+  );
+END;
+
 CREATE TABLE filter_list (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL REFERENCES tenant(id) ON DELETE CASCADE,
