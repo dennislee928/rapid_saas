@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TiltGuard Reviewer</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">TiltGuard reviewer MVP</p>
+        <h1>High-risk bonus events</h1>
+        <p>Read-only dashboard stub for triage: event list, fingerprint detail, linked accounts, and reason code breakdown.</p>
+      </section>
+      <section class="grid">
+        <article class="panel span-2">
+          <h2>Review Queue</h2>
+          <table>
+            <thead>
+              <tr><th>Event</th><th>Account</th><th>Type</th><th>Score</th><th>Recommendation</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>evt_demo_1</td><td>ring-42</td><td>signup</td><td class="risk">92</td><td>deny</td></tr>
+              <tr><td>evt_demo_2</td><td>acct-188</td><td>deposit</td><td class="warn">61</td><td>review</td></tr>
+              <tr><td>evt_demo_3</td><td>acct-077</td><td>login</td><td>24</td><td>allow</td></tr>
+            </tbody>
+          </table>
+        </article>
+        <article class="panel">
+          <h2>Fingerprint Detail</h2>
+          <dl>
+            <dt>Device</dt><dd>dev_a83c...19</dd>
+            <dt>Cluster</dt><dd>clu_a83c...ff</dd>
+            <dt>Signals</dt><dd>Canvas hash, WebGL renderer, timezone, safe behaviour summary</dd>
+          </dl>
+        </article>
+        <article class="panel">
+          <h2>Reason Codes</h2>
+          <ul class="chips">
+            <li>WEBDRIVER_PRESENT</li>
+            <li>FP_REUSE_HIGH</li>
+            <li>TZ_GEO_MISMATCH</li>
+            <li>IP_DC</li>
+          </ul>
+        </article>
+        <article class="panel span-2">
+          <h2>Linked Accounts</h2>
+          <p class="muted">Async graph-linking service will populate this from the links and clusters tables.</p>
+          <div class="links">
+            <span>ring-42</span><span>0.94 device</span>
+            <span>ring-43</span><span>0.89 fingerprint_minhash</span>
+            <span>ring-44</span><span>0.72 ip_asn</span>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
