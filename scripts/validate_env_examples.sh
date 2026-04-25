@@ -7,8 +7,7 @@ env_examples=()
 while IFS= read -r file; do
   env_examples+=("$file")
 done < <(
-  find "$ROOT_DIR" \
-    -path "$ROOT_DIR/.git" -prune -o \
+  find "$ROOT_DIR" -maxdepth 1 \
     -type f \( -name ".env.example" -o -name ".env.*.example" \) -print | sort
 )
 
