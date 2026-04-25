@@ -5,15 +5,15 @@ import "time"
 type TransactionState string
 
 const (
-	StateCreated          TransactionState = "created"
-	StateRouting          TransactionState = "routing"
-	StateAuthorising      TransactionState = "authorising"
-	StateAuthorised       TransactionState = "authorised"
-	StateCaptured         TransactionState = "captured"
-	StateRefunded         TransactionState = "refunded"
-	StateFailedRetriable  TransactionState = "failed_retriable"
-	StateFailedTerminal   TransactionState = "failed_terminal"
-	StateRequires3DS      TransactionState = "requires_3ds"
+	StateCreated           TransactionState = "created"
+	StateRouting           TransactionState = "routing"
+	StateAuthorising       TransactionState = "authorising"
+	StateAuthorised        TransactionState = "authorised"
+	StateCaptured          TransactionState = "captured"
+	StateRefunded          TransactionState = "refunded"
+	StateFailedRetriable   TransactionState = "failed_retriable"
+	StateFailedTerminal    TransactionState = "failed_terminal"
+	StateRequires3DS       TransactionState = "requires_3ds"
 	StatePartiallyRefunded TransactionState = "partially_refunded"
 )
 
@@ -66,17 +66,16 @@ type RefundRequest struct {
 }
 
 type Transaction struct {
-	ID               string           `json:"id"`
-	MerchantID       string           `json:"merchant_id"`
-	IdempotencyKey   string           `json:"idempotency_key,omitempty"`
-	AmountMinor      int64            `json:"amount_minor"`
-	Currency         string           `json:"currency"`
-	State            TransactionState `json:"state"`
-	AttemptCount     int              `json:"attempt_count"`
-	CurrentPSP       string           `json:"current_psp,omitempty"`
-	CurrentPSPTxnID  string           `json:"current_psp_txn_id,omitempty"`
-	DeclineReason    DeclineReason    `json:"decline_reason_normalised,omitempty"`
-	CreatedAt        time.Time        `json:"created_at"`
-	UpdatedAt        time.Time        `json:"updated_at"`
+	ID              string           `json:"id"`
+	MerchantID      string           `json:"merchant_id"`
+	IdempotencyKey  string           `json:"idempotency_key,omitempty"`
+	AmountMinor     int64            `json:"amount_minor"`
+	Currency        string           `json:"currency"`
+	State           TransactionState `json:"state"`
+	AttemptCount    int              `json:"attempt_count"`
+	CurrentPSP      string           `json:"current_psp,omitempty"`
+	CurrentPSPTxnID string           `json:"current_psp_txn_id,omitempty"`
+	DeclineReason   DeclineReason    `json:"decline_reason_normalised,omitempty"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
 }
-

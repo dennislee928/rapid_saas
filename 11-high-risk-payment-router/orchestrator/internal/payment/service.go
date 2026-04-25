@@ -15,13 +15,13 @@ import (
 )
 
 type Service struct {
-	mu          sync.Mutex
-	engine      *routing.Engine
-	psps        map[string]psp.Adapter
-	outbox      *webhook.MemoryOutbox
-	byID        map[string]model.Transaction
-	byIdem      map[string]string
-	pspTxnByID  map[string]string
+	mu         sync.Mutex
+	engine     *routing.Engine
+	psps       map[string]psp.Adapter
+	outbox     *webhook.MemoryOutbox
+	byID       map[string]model.Transaction
+	byIdem     map[string]string
+	pspTxnByID map[string]string
 }
 
 func NewService(engine *routing.Engine, psps map[string]psp.Adapter, outbox *webhook.MemoryOutbox) *Service {
@@ -179,4 +179,3 @@ func (s *Service) persistAndEmit(txn model.Transaction, eventType string) model.
 	})
 	return txn
 }
-

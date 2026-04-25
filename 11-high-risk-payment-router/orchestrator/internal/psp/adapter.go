@@ -36,9 +36,9 @@ type AuthorizeResponse struct {
 }
 
 type CaptureRequest struct {
-	MerchantID   string
-	PSPTxnID     string
-	AmountMinor  int64
+	MerchantID  string
+	PSPTxnID    string
+	AmountMinor int64
 }
 
 type CaptureResponse struct {
@@ -82,4 +82,3 @@ func DefaultSandboxAdapters() map[string]Adapter {
 func ErrUnsupported(code string) error {
 	return fmt.Errorf("psp adapter %q is not configured", code)
 }
-

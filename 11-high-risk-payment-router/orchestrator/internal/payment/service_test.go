@@ -87,4 +87,3 @@ func TestIdempotencyReturnsExistingTransaction(t *testing.T) {
 		t.Fatalf("expected same transaction for idempotency key, got %s and %s", first.ID, second.ID)
 	}
 }
-

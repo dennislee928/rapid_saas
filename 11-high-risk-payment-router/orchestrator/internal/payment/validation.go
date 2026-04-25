@@ -59,4 +59,3 @@ func luhn(digits string) bool {
 	}
 	return sum%10 == 0
 }
-

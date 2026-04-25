@@ -130,4 +130,3 @@ func flattenHeaders(headers http.Header) map[string]string {
 	}
 	return out
 }
-

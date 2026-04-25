@@ -21,4 +21,3 @@ func TestSelectEUCountryPrefersTrust(t *testing.T) {
 		t.Fatalf("expected trust first, got %v", got)
 	}
 }
-

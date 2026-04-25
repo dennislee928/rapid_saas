@@ -27,4 +27,3 @@ func TestRetrySchedule(t *testing.T) {
 		t.Fatal("attempts beyond schedule should be dead-lettered")
 	}
 }
-

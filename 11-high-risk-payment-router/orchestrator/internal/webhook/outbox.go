@@ -81,4 +81,3 @@ func NextRetryDelay(attempt int) time.Duration {
 	}
 	return delays[attempt]
 }
-

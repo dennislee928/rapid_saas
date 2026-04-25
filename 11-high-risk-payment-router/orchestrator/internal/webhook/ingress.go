@@ -45,4 +45,3 @@ func (s *IngressStore) Insert(event InboundEvent) (bool, error) {
 	s.events[key] = event
 	return true, nil
 }
-

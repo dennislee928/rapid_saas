@@ -51,10 +51,10 @@ func (s *Sandbox) Authorize(ctx context.Context, req AuthorizeRequest) (Authoriz
 		}, nil
 	default:
 		return AuthorizeResponse{
-			PSPTxnID:  fmt.Sprintf("%s_auth_%d", s.code, time.Now().UnixNano()),
-			Approved:  true,
-			RawCode:   "00",
-			Latency:   time.Since(start),
+			PSPTxnID: fmt.Sprintf("%s_auth_%d", s.code, time.Now().UnixNano()),
+			Approved: true,
+			RawCode:  "00",
+			Latency:  time.Since(start),
 		}, nil
 	}
 }
@@ -106,4 +106,3 @@ func sign(secret, body string) string {
 	mac.Write([]byte(body))
 	return hex.EncodeToString(mac.Sum(nil))
 }
-
