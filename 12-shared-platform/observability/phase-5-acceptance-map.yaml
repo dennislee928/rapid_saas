@@ -1,0 +1,41 @@
+version: 1
+phase: 5
+owner_area: 12-shared-platform/observability
+source_plan: docs/07-expect-tech-base-implementation-plan.md
+status: implemented-baseline
+deliverables:
+  - requirement: Add OpenTelemetry conventions for Workers and Go services.
+    asset: conventions/opentelemetry-conventions.txt
+    verification:
+      - Defines resource attributes, trace propagation, span attributes, span names, metrics, Worker guidance, and Go service guidance.
+  - requirement: Standardize structured logging fields.
+    asset: schemas/structured-log.schema.json
+    verification:
+      - Requires request_id, trace_id, tenant_id, product, operation, outcome, and latency_ms.
+      - Defines shared product and outcome vocabularies.
+  - requirement: Define SLOs per hot path.
+    asset: slo-targets.yaml
+    verification:
+      - Covers TiltGuard POST /v1/score.
+      - Covers RouteKit POST /charges.
+      - Covers Security Webhook Router inbound delivery.
+      - Covers realtime geospatial WebSocket update latency.
+      - Documents p50, p95, and p99 latency targets for each hot path.
+  - requirement: Add dashboards and alert thresholds.
+    assets:
+      - dashboards/grafana-overview.placeholder.json
+      - alerts/prometheus-alerts.placeholder.yaml
+    verification:
+      - Provides platform request-rate, latency, error, queue-age, and correlated-error panels.
+      - Provides placeholder alert thresholds for all Phase 5 hot paths and queue age.
+  - requirement: Local request can be traced across gateway, service, queue, and worker where feasible.
+    assets:
+      - collector/otel-collector.local.yaml
+      - runbooks/local-trace-walkthrough.txt
+    verification:
+      - Provides a local OTLP collector config.
+      - Provides a synthetic trace walkthrough.
+      - Documents the intended gateway-service-queue-worker trace shape and current product-code limitation.
+notes:
+  - Product services still need code-level OpenTelemetry middleware before full end-to-end traces are emitted.
+  - This baseline intentionally avoids product code changes and keeps Phase 5 assets in the shared platform observability area.
