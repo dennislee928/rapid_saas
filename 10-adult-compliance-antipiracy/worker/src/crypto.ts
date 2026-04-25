@@ -14,6 +14,10 @@ export interface JwtPayload {
 
 const encoder = new TextEncoder();
 
+function bufferSource(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
 export function base64UrlEncode(input: ArrayBuffer | string): string {
   const bytes = typeof input === "string" ? encoder.encode(input) : new Uint8Array(input);
   let binary = "";
@@ -41,13 +45,13 @@ async function importHmacKey(secret: string): Promise<CryptoKey> {
 
 export async function hmacHex(secret: string, value: string): Promise<string> {
   const key = await importHmacKey(secret);
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(value));
+  const signature = await crypto.subtle.sign("HMAC", key, bufferSource(encoder.encode(value)));
   return [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export async function sha256Hex(value: ArrayBuffer | string): Promise<string> {
   const bytes = typeof value === "string" ? encoder.encode(value) : value;
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const digest = await crypto.subtle.digest("SHA-256", typeof value === "string" ? bufferSource(bytes as Uint8Array) : bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
@@ -55,7 +59,7 @@ export async function signJwt(payload: JwtPayload, secret: string): Promise<stri
   const header = { alg: "HS256", typ: "JWT", kid: payload.kid };
   const signingInput = `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(payload))}`;
   const key = await importHmacKey(secret);
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(signingInput));
+  const signature = await crypto.subtle.sign("HMAC", key, bufferSource(encoder.encode(signingInput)));
   return `${signingInput}.${base64UrlEncode(signature)}`;
 }
 
@@ -71,8 +75,8 @@ export async function verifyJwt(token: string, secret: string, expectedAudience:
   const valid = await crypto.subtle.verify(
     "HMAC",
     key,
-    base64UrlDecode(encodedSignature),
-    encoder.encode(`${encodedHeader}.${encodedPayload}`),
+    bufferSource(base64UrlDecode(encodedSignature)),
+    bufferSource(encoder.encode(`${encodedHeader}.${encodedPayload}`)),
   );
   if (!valid) throw new Error("jwt_signature_invalid");
 
