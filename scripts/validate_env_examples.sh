@@ -3,7 +3,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-mapfile -t env_examples < <(
+env_examples=()
+while IFS= read -r file; do
+  env_examples+=("$file")
+done < <(
   find "$ROOT_DIR" \
     -path "$ROOT_DIR/.git" -prune -o \
     -type f \( -name ".env.example" -o -name ".env.*.example" \) -print | sort

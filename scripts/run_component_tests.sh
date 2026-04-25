@@ -5,12 +5,23 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SEARCH_DIRS=(apps services db infra packages)
 
 declare -a commands=()
-declare -A seen_dirs=()
+seen_keys=$'\n'
 
 add_command() {
   local dir="$1"
   local cmd="$2"
   commands+=("$dir"$'\t'"$cmd")
+}
+
+mark_seen() {
+  local key="$1"
+  case "$seen_keys" in
+    *$'\n'"$key"$'\n'*) return 0 ;;
+    *)
+      seen_keys="${seen_keys}${key}"$'\n'
+      return 1
+      ;;
+  esac
 }
 
 has_package_script() {
@@ -46,8 +57,7 @@ discover_node() {
   while IFS= read -r manifest; do
     dir="$(dirname "$manifest")"
     [[ "$dir" == "$ROOT_DIR" ]] && continue
-    [[ -n "${seen_dirs["node:$dir"]:-}" ]] && continue
-    seen_dirs["node:$dir"]=1
+    mark_seen "node:$dir" && continue
 
     if has_package_script "$manifest" test; then
       add_command "$dir" "$(node_test_command "$dir")"
@@ -59,8 +69,7 @@ discover_python() {
   local manifest dir
   while IFS= read -r manifest; do
     dir="$(dirname "$manifest")"
-    [[ -n "${seen_dirs["python:$dir"]:-}" ]] && continue
-    seen_dirs["python:$dir"]=1
+    mark_seen "python:$dir" && continue
 
     if [[ -d "$dir/tests" || -f "$dir/pytest.ini" || -f "$dir/setup.cfg" ]]; then
       add_command "$dir" "python3 -m pytest"
