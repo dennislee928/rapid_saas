@@ -1,0 +1,39 @@
+name: security-webhook-router
+
+services:
+  libsql:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    platform: linux/amd64
+    ports:
+      - "8080:8080"
+      - "5001:5001"
+    environment:
+      SQLD_NODE: primary
+      SQLD_HTTP_LISTEN_ADDR: 0.0.0.0:8080
+      SQLD_GRPC_LISTEN_ADDR: 0.0.0.0:5001
+      SQLD_DB_PATH: /var/lib/sqld/router.db
+    volumes:
+      - libsql-data:/var/lib/sqld
+
+  router:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: .
+    depends_on:
+      - libsql
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./env/router.env.example
+    environment:
+      DATABASE_URL: http://libsql:8080
+      BOLT_PATH: /data/retry.db
+    volumes:
+      - router-data:/data
+
+volumes:
+  libsql-data:
+  router-data:

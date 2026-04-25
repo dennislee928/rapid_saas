@@ -1,0 +1,45 @@
+app = "security-webhook-router"
+primary_region = "iad"
+kill_signal = "SIGINT"
+kill_timeout = "10s"
+
+[build]
+  dockerfile = "../../Dockerfile"
+  build-target = "runtime"
+  [build.args]
+    SERVICE_DIR = "."
+
+[env]
+  HTTP_ADDR = ":8080"
+  CONFIG_PATH = "/app/router.config.yaml"
+  LOG_LEVEL = "info"
+  BOLT_PATH = "/data/retry.db"
+
+[[mounts]]
+  source = "router_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
