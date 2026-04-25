@@ -1,0 +1,26 @@
+name = "security-webhook-ingress"
+main = "src/index.ts"
+compatibility_date = "2026-04-25"
+
+[vars]
+BODY_CAP_BYTES = "1048576"
+ENDPOINTS_JSON = "{}"
+DEFAULT_RATE_LIMIT_COUNT = "60"
+DEFAULT_RATE_LIMIT_WINDOW_SECONDS = "60"
+
+[[kv_namespaces]]
+binding = "SECURITY_ENDPOINTS"
+id = "replace-with-production-kv-namespace-id"
+preview_id = "replace-with-preview-kv-namespace-id"
+
+[[queues.producers]]
+binding = "SECURITY_WEBHOOK_QUEUE"
+queue = "security-webhooks"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]
