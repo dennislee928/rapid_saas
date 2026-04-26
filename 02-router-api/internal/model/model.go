@@ -84,7 +84,7 @@ type DLQEntry struct {
 }
 
 type UsageSummary struct {
-	TenantID   string `json:"tenant_id"`
+	TenantID  string `json:"tenant_id"`
 	Window    string `json:"window"`
 	Ingressed int64  `json:"ingressed"`
 	Forwarded int64  `json:"forwarded"`

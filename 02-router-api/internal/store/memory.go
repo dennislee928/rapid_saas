@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/base32"
 	"sort"
 	"strings"
 	"sync"
