@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"log/slog"
 	"time"
@@ -91,6 +92,19 @@ func (p *Processor) Process(ctx context.Context, event model.QueueEvent) error {
 		if result.Err != nil {
 			status = "failed"
 			errMessage = result.Err.Error()
+			if result.Retryable {
+				_ = p.repo.ParkDLQ(ctx, model.DLQEntry{
+					TenantID:      event.TenantID,
+					EndpointID:    event.EndpointID,
+					RuleID:        rule.ID,
+					DestinationID: destination.ID,
+					PayloadB64:    base64.StdEncoding.EncodeToString(event.Body),
+					LastError:     errMessage,
+					Attempts:      1,
+					ParkedAt:      time.Now().UnixMilli(),
+				})
+				status = "dlq"
+			}
 		}
 		if err := p.writeLog(ctx, event, rule, destination, status, result.HTTPStatus, result.Latency.Milliseconds(), errMessage); err != nil {
 			return err
@@ -103,6 +117,9 @@ func (p *Processor) Process(ctx context.Context, event model.QueueEvent) error {
 }
 
 func (p *Processor) writeLog(ctx context.Context, event model.QueueEvent, rule model.Rule, destination model.Destination, status string, httpStatus int, latencyMS int64, errMessage string) error {
+	if err := p.repo.IncrementUsage(ctx, event.TenantID, status); err != nil {
+		return err
+	}
 	return p.repo.WriteDeliveryLog(ctx, model.DeliveryLog{
 		TenantID:      event.TenantID,
 		EndpointID:    event.EndpointID,
