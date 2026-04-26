@@ -15,7 +15,7 @@ func TestDecodeQueueEventAcceptsSharedEnvelope(t *testing.T) {
 		},
 		"bodyBase64": base64.StdEncoding.EncodeToString([]byte(`{"alert":true}`)),
 		"bodySha256": "abc123",
-		"receivedAt":  "2026-04-26T00:00:00Z",
+		"receivedAt": "2026-04-26T00:00:00Z",
 	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {

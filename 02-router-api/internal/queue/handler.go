@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"encoding/base64"
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -32,12 +32,12 @@ type sharedEnvelope struct {
 }
 
 type webhookReceivedPayload struct {
-	EndpointID  string            `json:"endpointId"`
-	TenantID    string            `json:"tenantId"`
-	Headers     map[string]string `json:"headers"`
-	BodyBase64  string            `json:"bodyBase64"`
-	BodySha256  string            `json:"bodySha256"`
-	ReceivedAt  string            `json:"receivedAt"`
+	EndpointID string            `json:"endpointId"`
+	TenantID   string            `json:"tenantId"`
+	Headers    map[string]string `json:"headers"`
+	BodyBase64 string            `json:"bodyBase64"`
+	BodySha256 string            `json:"bodySha256"`
+	ReceivedAt string            `json:"receivedAt"`
 }
 
 func NewHandler(processor *Processor, logger *slog.Logger, sharedSecret string) *Handler {
