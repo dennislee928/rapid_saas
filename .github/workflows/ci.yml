@@ -27,6 +27,7 @@ jobs:
             08-realtime-geospatial-api \
             09-igaming-bonus-abuse \
             10-adult-compliance-antipiracy/worker \
+            10-adult-compliance-antipiracy/dashboard \
             11-high-risk-payment-router/edge-worker \
             11-high-risk-payment-router/dashboard
           do
@@ -66,10 +67,12 @@ jobs:
           - context: 09-igaming-bonus-abuse
           - context: 09-igaming-bonus-abuse/graph-linker
           - context: 10-adult-compliance-antipiracy/worker
+          - context: 10-adult-compliance-antipiracy/dashboard
           - context: 10-adult-compliance-antipiracy/services/hasher-crawler
           - context: 11-high-risk-payment-router/edge-worker
           - context: 11-high-risk-payment-router/orchestrator
           - context: 11-high-risk-payment-router/dashboard
+          - context: 12-shared-platform
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3

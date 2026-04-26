@@ -72,6 +72,13 @@ services:
     build:
       context: ../../10-adult-compliance-antipiracy/services/hasher-crawler
 
+  aegis-dashboard:
+    profiles: ["dashboards"]
+    build:
+      context: ../../10-adult-compliance-antipiracy/dashboard
+    ports:
+      - "3010:3000"
+
   routekit-edge-worker:
     profiles: ["workers"]
     build:
@@ -94,3 +101,8 @@ services:
       context: ../../11-high-risk-payment-router/dashboard
     ports:
       - "3011:3000"
+
+  shared-platform-validation:
+    profiles: ["checks"]
+    build:
+      context: ../../12-shared-platform

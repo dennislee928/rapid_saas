@@ -1,0 +1,22 @@
+name: routekit
+
+services:
+  edge-worker:
+    build:
+      context: ./edge-worker
+    ports:
+      - "8791:8787"
+
+  orchestrator:
+    build:
+      context: ./orchestrator
+    environment:
+      ROUTEKIT_HTTP_ADDR: :8080
+    ports:
+      - "8091:8080"
+
+  dashboard:
+    build:
+      context: ./dashboard
+    ports:
+      - "3011:3000"

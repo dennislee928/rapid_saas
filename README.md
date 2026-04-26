@@ -78,7 +78,7 @@ For root-level release readiness, use the product-specific README files plus `06
 
 ## Local Containers
 
-Most runnable service roots now include a local-development `Dockerfile`. The broad service matrix is defined in `05-infra-ci/infra/docker-compose.services.yml`.
+Most runnable service roots now include a local-development `Dockerfile`. Product-level Compose files exist for `10-adult-compliance-antipiracy/`, `11-high-risk-payment-router/`, and `12-shared-platform/`. The broad service matrix is defined in `05-infra-ci/infra/docker-compose.services.yml`.
 
 Render every service profile:
 
