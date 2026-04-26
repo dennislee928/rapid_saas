@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Activity, Braces, Gauge, RotateCcw, Shield } from "lucide-react";
 import { AuthStatus } from "./auth-status";
 import { QuotaMeter } from "./quota-meter";
-import { quota } from "@/lib/mock-data";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Activity },
@@ -10,7 +9,7 @@ const navItems = [
   { href: "/dlq", label: "DLQ / Replay", icon: RotateCcw }
 ] as const;
 
-export function AppShell({ children, eyebrow, title }: { children: React.ReactNode; eyebrow: string; title: string }) {
+export function AppShell({ children, eyebrow, title, quota }: { children: React.ReactNode; eyebrow: string; title: string; quota: { used: number; limit: number; resetLabel: string } }) {
   return (
     <div className="min-h-screen bg-ink-950 text-stone-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,104,31,0.24),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(168,207,132,0.16),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.05)_0,transparent_40%)]" />
