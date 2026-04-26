@@ -18,6 +18,8 @@ Completed shared-platform baseline:
 - Phase 7: `12-shared-platform/crypto-payments/` isolates the testnet-only crypto payment plan from RouteKit card-routing and PCI-scoped flows.
 - Phase 8: `12-shared-platform/quantum-sim/` contains a reproducible research-only PSP risk simulation with tests and no production hot-path dependency.
 
+Follow-up implementation after the phase baseline added Security Webhook Router `/w/:endpointId` support, shared event-envelope compatibility between the Worker and router queue handler, expanded validation discovery across all product folders, and Dockerfiles for the runnable service roots.
+
 Remaining work is product-specific production hardening: real external integrations, durable product storage where scaffolds still use memory or mocks, live dashboards, deployment automation, rollback runbooks, and production-grade observability in each service.
 
 ## Repository Map
@@ -72,3 +74,19 @@ cd ../.. && python3 -m unittest discover 12-shared-platform/quantum-sim/tests
 ```
 
 For root-level release readiness, use the product-specific README files plus `06-dev-tooling/` scripts as the source of truth.
+
+## Local Containers
+
+Most runnable service roots now include a local-development `Dockerfile`. The broad service matrix is defined in `05-infra-ci/infra/docker-compose.services.yml`.
+
+Render every service profile:
+
+```sh
+docker-compose -f 05-infra-ci/infra/docker-compose.services.yml --profile apis --profile workers --profile dashboards --profile checks config
+```
+
+The existing Security Webhook Router focused stack remains in:
+
+```sh
+docker-compose -f 05-infra-ci/infra/docker-compose.local.yml --profile app config
+```
