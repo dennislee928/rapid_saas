@@ -1,0 +1,87 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            01-ingress-worker/package-lock.json
+            04-dashboard/package-lock.json
+      - name: Install Node dependencies
+        run: |
+          for dir in \
+            01-ingress-worker \
+            04-dashboard \
+            07-ai-audio-stem-separation/worker \
+            08-realtime-geospatial-api \
+            09-igaming-bonus-abuse \
+            10-adult-compliance-antipiracy/worker \
+            11-high-risk-payment-router/edge-worker \
+            11-high-risk-payment-router/dashboard
+          do
+            if [ -f "$dir/package-lock.json" ]; then
+              (cd "$dir" && npm ci)
+            else
+              (cd "$dir" && npm install)
+            fi
+          done
+      - name: Validate workspace
+        run: cd 06-dev-tooling && make validate
+      - name: Typecheck key TypeScript services
+        run: |
+          (cd 01-ingress-worker && npm run typecheck)
+          (cd 08-realtime-geospatial-api && npm run typecheck)
+          (cd 09-igaming-bonus-abuse && npm run typecheck)
+          (cd 10-adult-compliance-antipiracy/worker && npm run typecheck)
+          (cd 11-high-risk-payment-router/edge-worker && npm run typecheck)
+      - name: Validate compose files
+        run: |
+          docker compose -f 05-infra-ci/infra/docker-compose.local.yml --profile app config >/tmp/local-compose.yml
+          docker compose -f 05-infra-ci/infra/docker-compose.services.yml --profile apis --profile workers --profile dashboards --profile checks config >/tmp/services-compose.yml
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - context: 01-ingress-worker
+          - context: 02-router-api
+          - context: 04-dashboard
+          - context: 07-ai-audio-stem-separation/worker
+          - context: 07-ai-audio-stem-separation/orchestrator
+          - context: 08-realtime-geospatial-api
+          - context: 09-igaming-bonus-abuse
+          - context: 09-igaming-bonus-abuse/graph-linker
+          - context: 10-adult-compliance-antipiracy/worker
+          - context: 10-adult-compliance-antipiracy/services/hasher-crawler
+          - context: 11-high-risk-payment-router/edge-worker
+          - context: 11-high-risk-payment-router/orchestrator
+          - context: 11-high-risk-payment-router/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          load: false
+          cache-from: type=gha,scope=${{ matrix.context }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.context }}
