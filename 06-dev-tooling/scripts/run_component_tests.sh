@@ -3,7 +3,19 @@ set -euo pipefail
 
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd "$TOOL_DIR/.." && pwd)"
-SEARCH_DIRS=(01-ingress-worker 02-router-api 03-database 04-dashboard 05-infra-ci)
+SEARCH_DIRS=(
+  01-ingress-worker
+  02-router-api
+  03-database
+  04-dashboard
+  05-infra-ci
+  07-ai-audio-stem-separation
+  08-realtime-geospatial-api
+  09-igaming-bonus-abuse
+  10-adult-compliance-antipiracy
+  11-high-risk-payment-router
+  12-shared-platform
+)
 CACHE_DIR="$TOOL_DIR/.cache"
 
 declare -a commands=()

@@ -1,11 +1,13 @@
 import { EndpointList } from "@/components/endpoint-list";
 import { EventTimeline } from "@/components/event-timeline";
 import { AppShell } from "@/components/app-shell";
-import { endpoints, timelineEvents } from "@/lib/mock-data";
+import { getDashboardData } from "@/lib/api";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { endpoints, timelineEvents, quota } = await getDashboardData();
+
   return (
-    <AppShell eyebrow="Operations console" title="Endpoints, signals, and quota in the same breath.">
+    <AppShell eyebrow="Operations console" title="Endpoints, signals, and quota in the same breath." quota={quota}>
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <EndpointList endpoints={endpoints} />
         <EventTimeline events={timelineEvents} />

@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package rapid_saas.shared.v1;
+
+import "google/protobuf/struct.proto";
+import "rapid_saas/shared/v1/common.proto";
+
+option go_package = "github.com/rapid-saas/rapid_saas/12-shared-platform/proto/gen/go/rapid_saas/shared/v1;sharedv1";
+
+service RiskScoringService {
+  rpc ScoreRisk(ScoreRiskRequest) returns (ScoreRiskResponse);
+  rpc ExplainRisk(ExplainRiskRequest) returns (ExplainRiskResponse);
+}
+
+message ScoreRiskRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  string subject_id = 3;
+  string subject_type = 4;
+  string event_type = 5;
+  map<string, string> signals = 6;
+  google.protobuf.Struct features = 7;
+  repeated string policy_ids = 8;
+}
+
+message ScoreRiskResponse {
+  string score_id = 1;
+  DecisionOutcome outcome = 2;
+  uint32 risk_score = 3;
+  repeated RiskReason reasons = 4;
+  string model_version = 5;
+  map<string, string> labels = 6;
+}
+
+message ExplainRiskRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  string score_id = 3;
+}
+
+message ExplainRiskResponse {
+  string score_id = 1;
+  repeated RiskReason reasons = 2;
+  google.protobuf.Struct feature_contributions = 3;
+  string analyst_summary = 4;
+}
+
+message RiskReason {
+  string code = 1;
+  string message = 2;
+  int32 weight = 3;
+  map<string, string> evidence = 4;
+}

@@ -1,10 +1,12 @@
 import { AppShell } from "@/components/app-shell";
 import { DlqTable } from "@/components/dlq-table";
-import { dlqItems } from "@/lib/mock-data";
+import { getDlqData } from "@/lib/api";
 
-export default function DlqPage() {
+export default async function DlqPage() {
+  const { dlqItems, quota } = await getDlqData();
+
   return (
-    <AppShell eyebrow="Retry controls" title="Dead letters stay visible until an operator moves them.">
+    <AppShell eyebrow="Retry controls" title="Dead letters stay visible until an operator moves them." quota={quota}>
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <DlqTable items={dlqItems} />
         <aside className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">

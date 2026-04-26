@@ -1,0 +1,73 @@
+Rapid SaaS shared gRPC contracts: compatibility and auth notes
+
+Scope
+-----
+
+These notes apply to the versioned protobuf package rapid_saas.shared.v1 and
+the initial internal services:
+
+- RiskScoringService
+- PaymentRoutingService
+- WebhookDeliveryService
+- AuditLogService
+
+Compatibility rules
+-------------------
+
+1. Package names include the major API version. Breaking changes require a new
+   package, for example rapid_saas.shared.v2.
+2. Field numbers, field names, RPC names, package names, and enum numeric
+   values must not be reused with different meaning.
+3. Additive changes are preferred: add new fields, enum values, messages, or
+   RPCs instead of changing existing semantics.
+4. Removed fields must be reserved in the owning message before deletion.
+5. Enum zero values are unspecified defaults and must not trigger business
+   actions.
+6. Servers and clients must tolerate unknown fields and unknown enum values.
+7. Newly added request fields must remain optional from a rollout perspective
+   until all known clients have deployed support.
+8. Response additions must not change the meaning of existing response fields.
+9. Idempotency-sensitive RPCs must continue honoring RequestContext.idempotency_key
+   when that field is present.
+10. Descriptor generation or Buf lint/breaking checks should run before merge.
+
+Internal authentication plan
+----------------------------
+
+Every RPC request includes RequestContext and ServiceAuthContext.
+
+- Production service-to-service calls should use mTLS between workloads. The
+  authenticated client certificate identity maps to ServiceAuthContext.principal.
+- Edge or Worker-originated internal calls that cannot use mTLS should use a
+  short-lived signed internal token. The token key id, issue time, expiry,
+  principal, and scopes map into ServiceAuthContext.
+- Authorization should trust the authenticated transport identity first, then
+  verify that ServiceAuthContext.scopes includes the RPC-specific scope.
+- Servers should reject requests with missing tenant context, expired auth
+  context, or a principal that is not allowed for the requested tenant.
+- All calls must propagate tenant_id, request_id, and trace_id in RequestContext.
+
+Initial scopes
+--------------
+
+- risk.score
+- risk.explain
+- payment.route
+- payment.health.write
+- webhook.enqueue
+- webhook.read
+- webhook.replay
+- audit.write
+- audit.read
+
+Local validation
+----------------
+
+Run this descriptor build from the repository root when protoc is available:
+
+  protoc -I 12-shared-platform/proto \
+    --descriptor_set_out=/tmp/rapid_saas_shared_v1.pb \
+    12-shared-platform/proto/rapid_saas/shared/v1/*.proto
+
+When Buf and the generation plugins are installed, buf.yaml and buf.gen.yaml are
+the intended source for Go and TypeScript client generation.

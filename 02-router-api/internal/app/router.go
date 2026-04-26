@@ -63,6 +63,12 @@ func NewRouter(deps Dependencies) http.Handler {
 				r.Delete("/", deps.Admin.DeleteRule)
 			})
 		})
+		r.Get("/delivery-logs", deps.Admin.ListDeliveryLogs)
+		r.Get("/usage", deps.Admin.UsageSummary)
+		r.Route("/dlq", func(r chi.Router) {
+			r.Get("/", deps.Admin.ListDLQ)
+			r.Post("/{dlqID}/replay", deps.Admin.ReplayDLQ)
+		})
 	})
 
 	return r

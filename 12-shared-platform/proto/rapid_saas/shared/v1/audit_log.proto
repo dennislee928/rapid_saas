@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package rapid_saas.shared.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "rapid_saas/shared/v1/common.proto";
+
+option go_package = "github.com/rapid-saas/rapid_saas/12-shared-platform/proto/gen/go/rapid_saas/shared/v1;sharedv1";
+
+service AuditLogService {
+  rpc AppendAuditLog(AppendAuditLogRequest) returns (AppendAuditLogResponse);
+  rpc QueryAuditLogs(QueryAuditLogsRequest) returns (QueryAuditLogsResponse);
+}
+
+message AppendAuditLogRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  AuditEntry entry = 3;
+}
+
+message AppendAuditLogResponse {
+  string audit_id = 1;
+  google.protobuf.Timestamp recorded_at = 2;
+}
+
+message QueryAuditLogsRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  string tenant_id = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+  repeated string actor_ids = 6;
+  repeated string actions = 7;
+  string page_token = 8;
+  uint32 page_size = 9;
+}
+
+message QueryAuditLogsResponse {
+  repeated AuditEntry entries = 1;
+  string next_page_token = 2;
+}
+
+message AuditEntry {
+  string audit_id = 1;
+  string tenant_id = 2;
+  string actor_id = 3;
+  string actor_type = 4;
+  string action = 5;
+  string resource_type = 6;
+  string resource_id = 7;
+  DecisionOutcome outcome = 8;
+  google.protobuf.Timestamp occurred_at = 9;
+  string request_id = 10;
+  string trace_id = 11;
+  google.protobuf.Struct metadata = 12;
+}

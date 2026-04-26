@@ -1,0 +1,50 @@
+Quantum Simulation Research Track
+
+This folder is a Phase 8 research scaffold for reproducible experiments. It is
+not wired into any product service, queue consumer, Worker, gateway, payment
+router, scoring path, or production build.
+
+Boundary:
+
+- Research only: run manually from this folder.
+- No production hot path: do not import this code from RouteKit, TiltGuard,
+  Aegis, ingress, event consumers, or dashboard code.
+- No external provider calls: the experiment uses the checked-in synthetic CSV
+  dataset.
+- No secrets: all parameters are local and deterministic.
+
+Experiment:
+
+experiments/psp_risk_sim.py compares two ways to estimate PSP routing risk
+exposure:
+
+1. Classical baseline: computes the analytical weighted expected loss from the
+   dataset.
+2. Quantum simulator prototype: encodes each PSP route's adverse-event
+   probability as a single-qubit Ry(theta) state and samples fixed-seed
+   measurement shots from the resulting state probabilities.
+
+The adverse event probability is:
+
+  1 - success_rate + chargeback_rate
+
+The adverse event loss per transaction is:
+
+  avg_amount * chargeback_loss_multiplier + incident_loss
+
+This is deliberately a small simulator, not a claim of quantum advantage. It
+gives the repo a reproducible comparison point for future research without
+blocking MVP SaaS work.
+
+Reproduce from the repository root:
+
+  python3 12-shared-platform/quantum-sim/experiments/psp_risk_sim.py
+
+Expected output is deterministic with the default seed and dataset. It includes
+the classical expected loss, quantum-simulator sampled mean loss, absolute
+delta, and p95 loss.
+
+Run tests:
+
+  python3 -m unittest discover 12-shared-platform/quantum-sim/tests
+

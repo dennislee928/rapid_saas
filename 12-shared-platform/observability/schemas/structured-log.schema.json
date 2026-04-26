@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rapid-saas.local/schemas/observability/structured-log.schema.json",
+  "title": "Rapid SaaS Structured Log Event",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "timestamp",
+    "level",
+    "message",
+    "request_id",
+    "trace_id",
+    "tenant_id",
+    "product",
+    "operation",
+    "outcome",
+    "latency_ms"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["debug", "info", "warn", "error"]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "span_id": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "product": {
+      "type": "string",
+      "enum": [
+        "security_webhook_router",
+        "tiltguard",
+        "routekit",
+        "realtime_geospatial",
+        "aegis",
+        "audio_stem_separation",
+        "shared_platform"
+      ]
+    },
+    "service": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "operation": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.:-]+$",
+      "maxLength": 128
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "accepted", "rejected", "error", "timeout", "retrying", "dlq"]
+    },
+    "latency_ms": {
+      "type": "number",
+      "minimum": 0
+    },
+    "http_method": {
+      "type": "string",
+      "maxLength": 16
+    },
+    "http_route": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "http_status": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "queue": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "event_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "idempotency_key": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "error_code": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_:-]+$",
+      "maxLength": 128
+    },
+    "error_message": {
+      "type": "string",
+      "maxLength": 512
+    }
+  },
+  "examples": [
+    {
+      "timestamp": "2026-04-26T06:00:00Z",
+      "level": "info",
+      "message": "request completed",
+      "request_id": "req_01HZY3W7V8QKV4E2ZVY0C8AA9K",
+      "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+      "span_id": "00f067aa0ba902b7",
+      "tenant_id": "ten_01HZY3W7V8QKV4E2ZVY0C8AA9K",
+      "product": "routekit",
+      "service": "routekit-orchestrator",
+      "operation": "charges.create",
+      "outcome": "success",
+      "latency_ms": 82.4,
+      "http_method": "POST",
+      "http_route": "/charges",
+      "http_status": 201
+    }
+  ]
+}
+

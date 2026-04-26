@@ -1,0 +1,106 @@
+{
+  "title": "Rapid SaaS Platform Overview",
+  "uid": "rapid-saas-platform-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["rapid-saas", "phase-5", "observability"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "product",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(http_server_request_duration_seconds_count, product)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true
+      },
+      {
+        "name": "operation",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(http_server_request_duration_seconds_count{product=~\"$product\"}, operation)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Request Rate",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "expr": "sum by (product, operation, outcome) (rate(http_server_request_duration_seconds_count{product=~\"$product\",operation=~\"$operation\"}[5m]))",
+          "legendFormat": "{{product}} {{operation}} {{outcome}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Latency p50/p95/p99",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, product, operation) (rate(http_server_request_duration_seconds_bucket{product=~\"$product\",operation=~\"$operation\"}[5m])))",
+          "legendFormat": "p50 {{product}} {{operation}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, product, operation) (rate(http_server_request_duration_seconds_bucket{product=~\"$product\",operation=~\"$operation\"}[5m])))",
+          "legendFormat": "p95 {{product}} {{operation}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, product, operation) (rate(http_server_request_duration_seconds_bucket{product=~\"$product\",operation=~\"$operation\"}[5m])))",
+          "legendFormat": "p99 {{product}} {{operation}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Error And Rejection Rate",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "expr": "sum by (product, operation, outcome) (rate(http_server_request_duration_seconds_count{product=~\"$product\",operation=~\"$operation\",outcome=~\"error|timeout|rejected\"}[5m]))",
+          "legendFormat": "{{product}} {{operation}} {{outcome}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Queue Age p95",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, product, queue) (rate(queue_message_age_seconds_bucket{product=~\"$product\"}[5m])))",
+          "legendFormat": "{{product}} {{queue}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Correlated Errors",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [
+        {
+          "expr": "{product=~\"$product\"} | json | outcome =~ \"error|timeout|dlq\""
+        }
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+    }
+  ]
+}
+

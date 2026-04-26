@@ -1,0 +1,108 @@
+name: rapid-saas-services
+
+services:
+  security-ingress-worker:
+    profiles: ["workers"]
+    build:
+      context: ../../01-ingress-worker
+    ports:
+      - "8781:8787"
+
+  security-router-api:
+    profiles: ["apis"]
+    build:
+      context: ../../02-router-api
+    environment:
+      HTTP_ADDR: :8080
+      QUEUE_PUSH_AUTH_TOKEN: local-shared-secret
+    ports:
+      - "8081:8080"
+
+  security-dashboard:
+    profiles: ["dashboards"]
+    build:
+      context: ../../04-dashboard
+    ports:
+      - "3004:3000"
+
+  audio-worker-check:
+    profiles: ["checks"]
+    build:
+      context: ../../07-ai-audio-stem-separation/worker
+
+  audio-orchestrator:
+    profiles: ["apis"]
+    build:
+      context: ../../07-ai-audio-stem-separation/orchestrator
+    environment:
+      PORT: "8080"
+    ports:
+      - "8087:8080"
+
+  realtime-geospatial-worker:
+    profiles: ["workers"]
+    build:
+      context: ../../08-realtime-geospatial-api
+    ports:
+      - "8788:8787"
+
+  tiltguard-worker-check:
+    profiles: ["checks"]
+    build:
+      context: ../../09-igaming-bonus-abuse
+
+  tiltguard-graph-linker:
+    profiles: ["apis"]
+    build:
+      context: ../../09-igaming-bonus-abuse/graph-linker
+    environment:
+      ADDR: :8080
+    ports:
+      - "8089:8080"
+
+  aegis-worker:
+    profiles: ["workers"]
+    build:
+      context: ../../10-adult-compliance-antipiracy/worker
+    ports:
+      - "8790:8787"
+
+  aegis-hasher-crawler:
+    profiles: ["checks"]
+    build:
+      context: ../../10-adult-compliance-antipiracy/services/hasher-crawler
+
+  aegis-dashboard:
+    profiles: ["dashboards"]
+    build:
+      context: ../../10-adult-compliance-antipiracy/dashboard
+    ports:
+      - "3010:3000"
+
+  routekit-edge-worker:
+    profiles: ["workers"]
+    build:
+      context: ../../11-high-risk-payment-router/edge-worker
+    ports:
+      - "8791:8787"
+
+  routekit-orchestrator:
+    profiles: ["apis"]
+    build:
+      context: ../../11-high-risk-payment-router/orchestrator
+    environment:
+      ROUTEKIT_HTTP_ADDR: :8080
+    ports:
+      - "8091:8080"
+
+  routekit-dashboard:
+    profiles: ["dashboards"]
+    build:
+      context: ../../11-high-risk-payment-router/dashboard
+    ports:
+      - "3011:3000"
+
+  shared-platform-validation:
+    profiles: ["checks"]
+    build:
+      context: ../../12-shared-platform

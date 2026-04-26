@@ -1,0 +1,55 @@
+Redis Outage Behavior
+=====================
+
+Redis hot state is an optimization and safety layer, not the source of durable
+business truth. Product behavior must be explicit when Redis is unavailable.
+
+RouteKit
+--------
+
+POST /charges authorization:
+  Uses distributed locks and idempotency keys. Fail closed with retryable 503
+  before PSP side effects.
+
+Capture/refund mutation:
+  Uses distributed locks and idempotency keys. Fail closed with retryable 503
+  before PSP side effects.
+
+PSP routing:
+  Uses PSP health. Fail open by using configured routing rules and treating
+  missing health as unknown.
+
+BIN/IP/device deny hot lookup:
+  Uses blacklist lookup. Fail open unless the marker is legally or
+  contractually required.
+
+Rationale:
+  Duplicate PSP side effects are materially worse than a short payment outage,
+  but stale or missing health data should not block all routing.
+
+TiltGuard
+---------
+
+/v1/score velocity enrichment:
+  Uses velocity counters. Fail open and score with SQL/static/default reuse
+  values.
+
+IP/device/BIN hot deny lookup:
+  Uses blacklist lookup. Fail open for fraud-only signals. Fail closed only for
+  future compliance-required lists.
+
+Reviewer/action dedupe:
+  Uses idempotency keys. Fail closed for state-changing reviewer actions.
+
+Rationale:
+  Scoring should remain available with reduced confidence. State-changing
+  actions still need duplicate protection.
+
+Operator Notes
+--------------
+
+- Redis timeouts should be short, normally 50-200 ms inside request paths.
+- All fail-open paths must log hot_state_unavailable=true.
+- All fail-closed paths should return retryable 503 with Retry-After.
+- Hot-state values must have TTLs; durable audit, transaction, and decision
+  records remain in SQL or the event backbone.

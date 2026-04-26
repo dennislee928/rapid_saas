@@ -1,0 +1,37 @@
+Redis Hot State
+===============
+
+Shared hot-state primitives for high-frequency decision paths that should not
+hit SQL on every request.
+
+Implementations:
+
+- MemoryStore: deterministic local tests.
+- RedisStore: production-like Redis access over the Redis protocol.
+
+Primitives:
+
+- Distributed locks collapse concurrent work for a tenant/entity into one
+  logical operation.
+- Token buckets enforce burst and refill limits.
+- Short-lived idempotency keys reserve a request key and detect exact replays
+  vs body mismatches.
+- Velocity counters count tenant/entity activity inside a TTL window.
+- Blacklist lookups hold temporary IP, device, BIN, and PSP deny markers.
+- PSP health records short-lived provider state for payment routing.
+
+Local Redis:
+
+  docker compose -f 12-shared-platform/hot-state/docker-compose.redis.yml up -d
+
+Default local address:
+
+  localhost:6379
+
+Key constructors in hotstate.go should be used instead of hand-built strings:
+
+- lock:{product}:{tenant}:{operation}:{entity}
+- idem:{product}:{tenant}:{operation}:{key}
+- vel:{product}:{tenant}:{entityKind}:{entityID}:{window}
+- blacklist:{kind}:{value}
+- psp:health:{psp}

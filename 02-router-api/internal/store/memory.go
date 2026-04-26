@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base32"
+	"encoding/base64"
+	"encoding/json"
 	"sort"
 	"strings"
 	"sync"
@@ -18,6 +20,8 @@ type MemoryStore struct {
 	destinations map[string]model.Destination
 	rules        map[string]model.Rule
 	logs         []model.DeliveryLog
+	dlq          map[string]model.DLQEntry
+	usage        map[string]model.UsageSummary
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -25,6 +29,8 @@ func NewMemoryStore() *MemoryStore {
 		endpoints:    map[string]model.Endpoint{},
 		destinations: map[string]model.Destination{},
 		rules:        map[string]model.Rule{},
+		dlq:          map[string]model.DLQEntry{},
+		usage:        map[string]model.UsageSummary{},
 	}
 }
 
@@ -218,6 +224,112 @@ func (s *MemoryStore) WriteDeliveryLog(_ context.Context, log model.DeliveryLog)
 	}
 	s.logs = append(s.logs, log)
 	return nil
+}
+
+func (s *MemoryStore) ListDeliveryLogs(_ context.Context, tenantID string, limit int) ([]model.DeliveryLog, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if limit <= 0 || limit > 250 {
+		limit = 50
+	}
+	var out []model.DeliveryLog
+	for i := len(s.logs) - 1; i >= 0 && len(out) < limit; i-- {
+		if s.logs[i].TenantID == tenantID {
+			out = append(out, s.logs[i])
+		}
+	}
+	return out, nil
+}
+
+func (s *MemoryStore) IncrementUsage(_ context.Context, tenantID, status string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	usage := s.usage[tenantID]
+	usage.TenantID = tenantID
+	usage.Window = "memory-lifetime"
+	usage.Ingressed++
+	switch status {
+	case "delivered":
+		usage.Forwarded++
+	case "failed", "dlq":
+		usage.Failed++
+	}
+	s.usage[tenantID] = usage
+	return nil
+}
+
+func (s *MemoryStore) UsageSummary(_ context.Context, tenantID string) (model.UsageSummary, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	usage := s.usage[tenantID]
+	if usage.TenantID == "" {
+		usage.TenantID = tenantID
+		usage.Window = "memory-lifetime"
+	}
+	return usage, nil
+}
+
+func (s *MemoryStore) ParkDLQ(_ context.Context, entry model.DLQEntry) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if entry.ID == "" {
+		entry.ID = "dlq_" + randomID()
+	}
+	if entry.ParkedAt == 0 {
+		entry.ParkedAt = time.Now().UnixMilli()
+	}
+	s.dlq[entry.ID] = entry
+	return nil
+}
+
+func (s *MemoryStore) ListDLQ(_ context.Context, tenantID string, limit int) ([]model.DLQEntry, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if limit <= 0 || limit > 250 {
+		limit = 50
+	}
+	out := make([]model.DLQEntry, 0, len(s.dlq))
+	for _, entry := range s.dlq {
+		if entry.TenantID == tenantID {
+			out = append(out, entry)
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return out[i].ParkedAt > out[j].ParkedAt
+	})
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
+}
+
+func (s *MemoryStore) ReplayDLQ(_ context.Context, tenantID, dlqID string) (model.QueueEvent, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	entry, ok := s.dlq[dlqID]
+	if !ok || entry.TenantID != tenantID {
+		return model.QueueEvent{}, ErrNotFound
+	}
+	delete(s.dlq, dlqID)
+	body, err := base64.StdEncoding.DecodeString(entry.PayloadB64)
+	if err != nil {
+		return model.QueueEvent{}, err
+	}
+	raw := json.RawMessage(body)
+	if !json.Valid(raw) {
+		encoded, err := json.Marshal(string(body))
+		if err != nil {
+			return model.QueueEvent{}, err
+		}
+		raw = encoded
+	}
+	return model.QueueEvent{
+		ID:         "replay_" + randomID(),
+		TenantID:   tenantID,
+		EndpointID: entry.EndpointID,
+		Body:       raw,
+		ReceivedAt: time.Now().UnixMilli(),
+	}, nil
 }
 
 func ensureEndpointDefaults(endpoint *model.Endpoint) {

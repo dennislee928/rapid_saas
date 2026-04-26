@@ -1,10 +1,12 @@
 import { AppShell } from "@/components/app-shell";
 import { RulesEditor } from "@/components/rules-editor";
-import { activeRuleDocument } from "@/lib/mock-data";
+import { getRulesData } from "@/lib/api";
 
-export default function RulesPage() {
+export default async function RulesPage() {
+  const { activeRuleDocument, quota } = await getRulesData();
+
   return (
-    <AppShell eyebrow="Rule engine" title="Edit the ordered chain before the canvas exists.">
+    <AppShell eyebrow="Rule engine" title="Edit the ordered chain before the canvas exists." quota={quota}>
       <RulesEditor initialRules={activeRuleDocument} />
     </AppShell>
   );

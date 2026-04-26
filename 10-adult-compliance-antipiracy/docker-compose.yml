@@ -1,0 +1,18 @@
+name: aegis-adult
+
+services:
+  worker:
+    build:
+      context: ./worker
+    ports:
+      - "8790:8787"
+
+  hasher-crawler:
+    build:
+      context: ./services/hasher-crawler
+
+  dashboard:
+    build:
+      context: ./dashboard
+    ports:
+      - "3010:3000"

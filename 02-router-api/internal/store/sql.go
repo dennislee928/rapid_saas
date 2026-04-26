@@ -87,6 +87,30 @@ func (s *SQLStore) WriteDeliveryLog(context.Context, model.DeliveryLog) error {
 	return errSQLStoreNotImplemented()
 }
 
+func (s *SQLStore) IncrementUsage(context.Context, string, string) error {
+	return errSQLStoreNotImplemented()
+}
+
+func (s *SQLStore) ParkDLQ(context.Context, model.DLQEntry) error {
+	return errSQLStoreNotImplemented()
+}
+
+func (s *SQLStore) ListDeliveryLogs(context.Context, string, int) ([]model.DeliveryLog, error) {
+	return nil, errSQLStoreNotImplemented()
+}
+
+func (s *SQLStore) ListDLQ(context.Context, string, int) ([]model.DLQEntry, error) {
+	return nil, errSQLStoreNotImplemented()
+}
+
+func (s *SQLStore) ReplayDLQ(context.Context, string, string) (model.QueueEvent, error) {
+	return model.QueueEvent{}, errSQLStoreNotImplemented()
+}
+
+func (s *SQLStore) UsageSummary(context.Context, string) (model.UsageSummary, error) {
+	return model.UsageSummary{}, errSQLStoreNotImplemented()
+}
+
 func errSQLStoreNotImplemented() error {
 	return ErrNotImplemented
 }

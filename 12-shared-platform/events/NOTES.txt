@@ -1,0 +1,57 @@
+Shared Event Backbone
+
+Phase 2 introduces a small, typed event backbone surface that products can adopt before a managed queue is selected.
+
+Envelope
+
+All product events must use the shared envelope fields:
+
+- event_id
+- tenant_id
+- type
+- schema_version
+- occurred_at
+- idempotency_key
+- payload
+- trace_id
+
+payload is intentionally raw JSON in the envelope and decoded into product-owned typed structs at the consumer boundary.
+
+Local Adapter
+
+The local adapter is MemoryQueue. It provides the same behavior expected from a production queue:
+
+- publish to a named topic
+- consume only visible messages
+- retry failed consumers according to RetryPolicy
+- park exhausted events in DLQ with the failure reason
+- replay DLQ entries back to the topic
+- skip duplicate side effects with an idempotency store
+
+Production target: Cloudflare Queues for Worker-first products, or Kafka-compatible infrastructure such as Redpanda when durable ordered streams are required. Product code should depend on the publish/consume conventions, not the in-memory implementation.
+
+Retry And DLQ Convention
+
+The default retry schedule is:
+
+1. 30 seconds
+2. 2 minutes
+3. 10 minutes
+4. 1 hour
+5. 6 hours
+
+After the original delivery plus configured retries are exhausted, the event moves to DLQ with:
+
+- original envelope
+- topic
+- final attempt count
+- reason
+- failure timestamp
+
+Replay And Idempotency
+
+Consumers must apply side effects behind idempotency_key. Local tests demonstrate replaying the same event without duplicating the representative RouteKit webhook side effect.
+
+Run verification:
+
+go test ./...

@@ -1,0 +1,145 @@
+OpenTelemetry conventions
+Status: Phase 5 platform baseline
+
+Scope
+
+These conventions apply to Cloudflare Workers, Go services, queue consumers,
+and local gateway adapters in this repository. Product code can add
+product-specific attributes, but it must keep the required shared attributes
+stable so traces, logs, metrics, dashboards, and SLO burn alerts can join on the
+same dimensions.
+
+Resource attributes
+
+Every process or Worker must emit these resource attributes:
+
+- service.name: stable service identifier, for example routekit-orchestrator.
+- service.namespace: rapid-saas.
+- service.version: Git SHA or release tag, for example git:4f2a9b1.
+- deployment.environment.name: local, staging, or production.
+- cloud.provider: cloudflare or fly_io when applicable.
+- product: one of the stable product values below.
+
+Product values:
+
+- security_webhook_router
+- tiltguard
+- routekit
+- realtime_geospatial
+- aegis
+- audio_stem_separation
+- shared_platform
+
+Trace propagation
+
+Inbound HTTP paths must accept and forward W3C trace context:
+
+- traceparent
+- tracestate
+- baggage
+
+If a request arrives without traceparent, the first repo-owned boundary creates
+a trace. Gateways and Workers must preserve x-request-id when supplied and
+create one when missing. Queue producers must copy trace_id, request_id, and
+tenant_id into the event envelope attributes or payload metadata so consumers
+can link async work back to the request trace.
+
+Required span attributes
+
+All repo-owned spans must include these attributes when the value is known:
+
+- request_id: same value as structured logs.
+- tenant_id: tenant identifier only; do not emit customer names.
+- product: stable product value.
+- operation: low-cardinality dot-delimited operation name.
+- outcome: success, accepted, rejected, error, timeout, retrying, or dlq.
+
+Use OpenTelemetry semantic attributes where they exist:
+
+- HTTP: http.request.method, url.path, http.response.status_code.
+- Messaging: messaging.system, messaging.destination.name,
+  messaging.operation.name, messaging.message.id.
+- Database: db.system.name, db.operation.name, db.collection.name.
+- RPC/gRPC: rpc.system, rpc.service, rpc.method, rpc.grpc.status_code.
+
+Do not add raw webhook payloads, card data, device fingerprints, KYC document
+contents, auth headers, or signing secrets to spans.
+
+Span naming
+
+Use low-cardinality names:
+
+- HTTP server: METHOD route, for example POST /charges.
+- Worker fetch: METHOD route, for example POST /v1/score.
+- Queue producer: queue publish <topic>.
+- Queue consumer: queue consume <topic>.
+- Database: <operation> <table_or_collection>.
+- External provider: <provider> <operation>.
+
+Never include tenant IDs, endpoint IDs, payment IDs, IP addresses, or dynamic
+URL path values in the span name. Put safe identifiers in attributes only when
+required for debugging and never for high-cardinality dashboards.
+
+Metrics
+
+Each hot path should emit:
+
+- http.server.request.duration histogram with product, operation, outcome,
+  http.route, and http.response.status_code labels.
+- http.server.request.count counter with product, operation, outcome,
+  http.route, and http.response.status_code labels.
+- queue.message.age histogram with product, queue, operation, and outcome
+  labels.
+- queue.consumer.retries counter with product, queue, operation, and outcome
+  labels.
+- business.operation.count counter with product, operation, and outcome labels.
+
+Histogram buckets should cover these common latency cutoffs in milliseconds:
+5, 10, 25, 50, 100, 200, 500, 1000, 2500, 5000, 10000.
+
+Cloudflare Worker guidance
+
+Workers should parse or create x-request-id at the first line of request
+handling, parse traceparent if present, pass trace context to downstream calls
+and queue messages, and emit one structured JSON log per completed request using
+the shared logging schema.
+
+Workers should not block request handling on trace export. Use platform logs,
+analytics, or a non-blocking exporter compatible with Cloudflare Workers.
+
+Go service guidance
+
+Go services should initialize an OTLP exporter from environment variables, wrap
+HTTP servers with OpenTelemetry middleware, add request_id, tenant_id, product,
+operation, and outcome as span attributes, use log/slog JSON handlers, and
+include trace_id from the active span context in request logs.
+
+Suggested local environment:
+
+OTEL_SERVICE_NAME=routekit-orchestrator
+OTEL_RESOURCE_ATTRIBUTES=service.namespace=rapid-saas,product=routekit,deployment.environment.name=local
+OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318
+OTEL_TRACES_EXPORTER=otlp
+OTEL_METRICS_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=none
+
+Async trace linking
+
+Queue producers must write trace_id, span_id when available, request_id,
+tenant_id, event_id, and idempotency_key. Queue consumers should start a
+consumer span and add a link to the producer span if the event contains trace_id
+and span_id. When the runtime cannot represent span links, add
+messaging.message.conversation_id=<trace_id> and keep trace_id in structured
+logs.
+
+Outcome vocabulary
+
+- success: completed as intended.
+- accepted: accepted for asynchronous processing.
+- rejected: caller error, policy denial, invalid signature, quota denial, or
+  validation failure.
+- error: internal error or unexpected provider failure.
+- timeout: deadline exceeded.
+- retrying: failed but scheduled for retry.
+- dlq: poisoned or exhausted message moved to DLQ.
+

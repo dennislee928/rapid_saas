@@ -29,3 +29,45 @@ func TestMemoryStoreListRulesOrdersByPosition(t *testing.T) {
 		t.Fatalf("rules not ordered by position: %#v", got)
 	}
 }
+
+func TestMemoryStoreDLQReplayRemovesEntry(t *testing.T) {
+	store := NewMemoryStore()
+	ctx := context.Background()
+	if err := store.ParkDLQ(ctx, model.DLQEntry{
+		ID:         "dlq_1",
+		TenantID:   "tenant_1",
+		EndpointID: "ep_1",
+		PayloadB64: "eyJvayI6dHJ1ZX0=",
+		Attempts:   1,
+	}); err != nil {
+		t.Fatalf("ParkDLQ() error = %v", err)
+	}
+	event, err := store.ReplayDLQ(ctx, "tenant_1", "dlq_1")
+	if err != nil {
+		t.Fatalf("ReplayDLQ() error = %v", err)
+	}
+	if event.EndpointID != "ep_1" || string(event.Body) != `{"ok":true}` {
+		t.Fatalf("unexpected replay event: %#v", event)
+	}
+	items, err := store.ListDLQ(ctx, "tenant_1", 10)
+	if err != nil {
+		t.Fatalf("ListDLQ() error = %v", err)
+	}
+	if len(items) != 0 {
+		t.Fatalf("expected replay to remove entry, got %#v", items)
+	}
+}
+
+func TestMemoryStoreUsageSummary(t *testing.T) {
+	store := NewMemoryStore()
+	ctx := context.Background()
+	_ = store.IncrementUsage(ctx, "tenant_1", "delivered")
+	_ = store.IncrementUsage(ctx, "tenant_1", "failed")
+	usage, err := store.UsageSummary(ctx, "tenant_1")
+	if err != nil {
+		t.Fatalf("UsageSummary() error = %v", err)
+	}
+	if usage.Ingressed != 2 || usage.Forwarded != 1 || usage.Failed != 1 {
+		t.Fatalf("unexpected usage: %#v", usage)
+	}
+}

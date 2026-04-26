@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package rapid_saas.shared.v1;
+
+import "google/protobuf/timestamp.proto";
+import "rapid_saas/shared/v1/common.proto";
+
+option go_package = "github.com/rapid-saas/rapid_saas/12-shared-platform/proto/gen/go/rapid_saas/shared/v1;sharedv1";
+
+service PaymentRoutingService {
+  rpc RoutePayment(RoutePaymentRequest) returns (RoutePaymentResponse);
+  rpc ReportProviderHealth(ReportProviderHealthRequest) returns (ReportProviderHealthResponse);
+}
+
+message RoutePaymentRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  string merchant_id = 3;
+  Money amount = 4;
+  PaymentInstrument instrument = 5;
+  RiskSnapshot risk = 6;
+  repeated string allowed_provider_ids = 7;
+  map<string, string> metadata = 8;
+}
+
+message RoutePaymentResponse {
+  string routing_decision_id = 1;
+  string provider_id = 2;
+  string provider_account_id = 3;
+  DecisionOutcome outcome = 4;
+  repeated string rule_ids = 5;
+  repeated ErrorDetail warnings = 6;
+}
+
+message ReportProviderHealthRequest {
+  RequestContext context = 1;
+  ServiceAuthContext auth = 2;
+  string provider_id = 3;
+  ProviderHealthStatus status = 4;
+  string region = 5;
+  google.protobuf.Timestamp observed_at = 6;
+  map<string, string> metrics = 7;
+}
+
+message ReportProviderHealthResponse {
+  string provider_id = 1;
+  ProviderHealthStatus accepted_status = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message PaymentInstrument {
+  string token_id = 1;
+  string brand = 2;
+  string bin = 3;
+  string last4 = 4;
+  string country = 5;
+  string funding_type = 6;
+}
+
+message RiskSnapshot {
+  string score_id = 1;
+  DecisionOutcome outcome = 2;
+  uint32 risk_score = 3;
+}
+
+enum ProviderHealthStatus {
+  PROVIDER_HEALTH_STATUS_UNSPECIFIED = 0;
+  PROVIDER_HEALTH_STATUS_HEALTHY = 1;
+  PROVIDER_HEALTH_STATUS_DEGRADED = 2;
+  PROVIDER_HEALTH_STATUS_UNAVAILABLE = 3;
+}

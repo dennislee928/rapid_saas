@@ -15,6 +15,7 @@ type Provider = "github" | "stripe" | "slack" | "generic";
 
 interface EndpointConfig {
   id: string;
+  tenantId?: string;
   provider: Provider;
   enabled?: boolean;
   secret?: string;
@@ -29,7 +30,29 @@ interface EndpointConfig {
 }
 
 export interface WebhookQueueMessage {
+  event_id: string;
+  tenant_id: string;
+  type: "security.webhook.received";
+  schema_version: 1;
+  occurred_at: string;
+  idempotency_key: string;
+  payload: WebhookQueuePayload;
+  trace_id?: string;
   endpointId: string;
+  tenantId: string;
+  provider: Provider;
+  receivedAt: string;
+  headers: Record<string, string>;
+  bodyBase64: string;
+  bodySha256: string;
+  sourceIp: string;
+  topic?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface WebhookQueuePayload {
+  endpointId: string;
+  tenantId: string;
   provider: Provider;
   receivedAt: string;
   headers: Record<string, string>;
@@ -74,9 +97,9 @@ export async function handleRequest(request: Request, env: Env, _ctx?: Execution
     });
   }
 
-  const match = url.pathname.match(/^\/(?:webhooks|ingest)\/([A-Za-z0-9_.:-]+)$/);
+  const match = url.pathname.match(/^\/(?:w|webhooks|ingest)\/([A-Za-z0-9_.:-]+)$/);
   if (!match) {
-    return json({ error: "not_found", message: "Use POST /webhooks/:endpointId or /ingest/:endpointId." }, 404);
+    return json({ error: "not_found", message: "Use POST /w/:endpointId, /webhooks/:endpointId, or /ingest/:endpointId." }, 404);
   }
 
   if (request.method !== "POST") {
@@ -135,16 +158,35 @@ export async function handleRequest(request: Request, env: Env, _ctx?: Execution
     }, 503);
   }
 
-  await env.SECURITY_WEBHOOK_QUEUE.send({
+  const tenantId = endpoint.tenantId ?? stringMetadata(endpoint.metadata, "tenant_id") ?? "tenant_demo";
+  const receivedAt = new Date().toISOString();
+  const headers = headersToObject(request.headers);
+  const bodyBase64 = arrayBufferToBase64(body.bytes);
+  const bodySha256 = await sha256Hex(body.bytes);
+  const idempotencyKey = request.headers.get("idempotency-key") ?? request.headers.get("x-request-id") ?? bodySha256;
+  const payload: WebhookQueuePayload = {
     endpointId: endpoint.id,
+    tenantId,
     provider: endpoint.provider,
-    receivedAt: new Date().toISOString(),
-    headers: headersToObject(request.headers),
-    bodyBase64: arrayBufferToBase64(body.bytes),
-    bodySha256: await sha256Hex(body.bytes),
+    receivedAt,
+    headers,
+    bodyBase64,
+    bodySha256,
     sourceIp,
     topic: endpoint.queueTopic,
     metadata: endpoint.metadata
+  };
+
+  await env.SECURITY_WEBHOOK_QUEUE.send({
+    event_id: crypto.randomUUID(),
+    tenant_id: tenantId,
+    type: "security.webhook.received",
+    schema_version: 1,
+    occurred_at: receivedAt,
+    idempotency_key: idempotencyKey,
+    payload,
+    trace_id: request.headers.get("traceparent") ?? request.headers.get("x-request-id") ?? undefined,
+    ...payload
   });
 
   return json({ ok: true, endpointId: endpoint.id, provider: endpoint.provider }, 202);
@@ -404,6 +446,11 @@ function headersToObject(headers: Headers): Record<string, string> {
     output[key] = value;
   });
   return output;
+}
+
+function stringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | null {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 async function hmacSha256Hex(secret: string, payload: Uint8Array): Promise<string> {
