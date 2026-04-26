@@ -36,6 +36,8 @@ Follow-up implementation on 2026-04-26 edited Security Webhook Router implementa
 - `06-dev-tooling/scripts/run_component_tests.sh` now discovers current product folders `07-*` through `12-shared-platform`, so `make validate` exercises the expanded workspace where local dependencies exist.
 - Local-development Dockerfiles were added for runnable services and service scaffolds across `01`, `02`, `04`, `07`, `08`, `09`, `10`, and `11`.
 - `05-infra-ci/infra/docker-compose.services.yml` now provides a service matrix for `apis`, `workers`, `dashboards`, and `checks` profiles.
+- Router API now exposes local delivery-log, usage, DLQ list, and DLQ replay endpoints. The dashboard can read these endpoints when `ROUTER_API_BASE_URL` is configured and falls back to mock data otherwise.
+- Remaining live-service blockers are tracked in `docs/residual-production-gaps.md`.
 
 ## Orchestration Progress
 

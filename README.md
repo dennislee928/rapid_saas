@@ -55,6 +55,7 @@ Remaining work is product-specific production hardening: real external integrati
 | `docs/07-expect-tech-base-implementation-plan.md` | Gap analysis and execution plan for the technical base expectations |
 | `docs/product-readiness-status.md` | Phase 0 ownership, maturity, verification, and shared vocabulary matrix |
 | `docs/phase-6-product-hardening.md` | Phase 6 release gates and hardening ticket order |
+| `docs/residual-production-gaps.md` | Local implementation status and blockers that require live services or credentials |
 
 ## Local Verification
 
