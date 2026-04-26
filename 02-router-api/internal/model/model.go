@@ -70,3 +70,23 @@ type DeliveryLog struct {
 	ReceivedAt    int64  `json:"received_at"`
 	DeliveredAt   int64  `json:"delivered_at,omitempty"`
 }
+
+type DLQEntry struct {
+	ID            string `json:"id"`
+	TenantID      string `json:"tenant_id"`
+	EndpointID    string `json:"endpoint_id"`
+	RuleID        string `json:"rule_id,omitempty"`
+	DestinationID string `json:"destination_id,omitempty"`
+	PayloadB64    string `json:"payload_b64"`
+	LastError     string `json:"last_error,omitempty"`
+	Attempts      int    `json:"attempts"`
+	ParkedAt      int64  `json:"parked_at"`
+}
+
+type UsageSummary struct {
+	TenantID   string `json:"tenant_id"`
+	Window    string `json:"window"`
+	Ingressed int64  `json:"ingressed"`
+	Forwarded int64  `json:"forwarded"`
+	Failed    int64  `json:"failed"`
+}

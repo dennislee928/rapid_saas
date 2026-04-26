@@ -43,6 +43,10 @@ type AdminRepository interface {
 	GetRule(context.Context, string, string) (model.Rule, error)
 	UpdateRule(context.Context, *model.Rule) error
 	DeleteRule(context.Context, string, string) error
+	ListDeliveryLogs(context.Context, string, int) ([]model.DeliveryLog, error)
+	ListDLQ(context.Context, string, int) ([]model.DLQEntry, error)
+	ReplayDLQ(context.Context, string, string) (model.QueueEvent, error)
+	UsageSummary(context.Context, string) (model.UsageSummary, error)
 }
 
 type ProcessingRepository interface {
@@ -51,4 +55,6 @@ type ProcessingRepository interface {
 	GetDestination(context.Context, string, string) (model.Destination, error)
 	ListRules(context.Context, string, string) ([]model.Rule, error)
 	WriteDeliveryLog(context.Context, model.DeliveryLog) error
+	IncrementUsage(context.Context, string, string) error
+	ParkDLQ(context.Context, model.DLQEntry) error
 }
