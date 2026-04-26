@@ -37,7 +37,7 @@ func TestMemoryStoreDLQReplayRemovesEntry(t *testing.T) {
 		ID:         "dlq_1",
 		TenantID:   "tenant_1",
 		EndpointID: "ep_1",
-		PayloadB64: "eyJvayI6dHJ1ZX0",
+		PayloadB64: "eyJvayI6dHJ1ZX0=",
 		Attempts:   1,
 	}); err != nil {
 		t.Fatalf("ParkDLQ() error = %v", err)
