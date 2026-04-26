@@ -18,10 +18,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: |
-            01-ingress-worker/package-lock.json
-            04-dashboard/package-lock.json
       - name: Install Node dependencies
         run: |
           for dir in \
