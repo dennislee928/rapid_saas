@@ -52,11 +52,49 @@ describe("security webhook ingress worker", () => {
     expect(response.status).toBe(202);
     expect(sent).toHaveLength(1);
     expect(sent[0]).toMatchObject({
+      type: "security.webhook.received",
+      schema_version: 1,
       endpointId: "demo",
+      tenant_id: "tenant_demo",
+      tenantId: "tenant_demo",
       provider: "generic",
       bodyBase64: "aGVsbG8=",
       sourceIp: "203.0.113.10",
-      topic: "alerts"
+      topic: "alerts",
+      payload: {
+        endpointId: "demo",
+        tenantId: "tenant_demo",
+        provider: "generic",
+        bodyBase64: "aGVsbG8="
+      }
+    });
+    expect(sent[0].event_id).toMatch(/[0-9a-f-]{36}/);
+  });
+
+  it("accepts the spec /w/:endpointId route alias", async () => {
+    const sent: WebhookQueueMessage[] = [];
+    const body = JSON.stringify({ ok: true });
+    const signature = await hmacHex("secret", body);
+    const response = await handleRequest(new Request("https://worker.test/w/demo", {
+      method: "POST",
+      headers: { "x-webhook-signature": `sha256=${signature}` },
+      body
+    }), {
+      ENDPOINTS_JSON: JSON.stringify({
+        demo: { provider: "generic", secret: "secret", tenantId: "tenant_1" }
+      }),
+      SECURITY_WEBHOOK_QUEUE: {
+        send: async (message: WebhookQueueMessage) => {
+          sent.push(message);
+        }
+      } as unknown as Queue<WebhookQueueMessage>
+    });
+
+    expect(response.status).toBe(202);
+    expect(sent[0]).toMatchObject({
+      tenant_id: "tenant_1",
+      endpointId: "demo",
+      payload: { tenantId: "tenant_1" }
     });
   });
 });
