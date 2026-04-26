@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { rejectRawCardData, sha256Hex, verifyMerchantSignature, type IdempotencyRecord } from "./security";
 
 type Env = {
@@ -9,6 +10,7 @@ type Env = {
 };
 
 const app = new Hono<{ Bindings: Env }>();
+type AppContext = Context<{ Bindings: Env }>;
 
 app.get("/healthz", (c) => c.json({ status: "ok", component: "edge-worker" }));
 
@@ -23,7 +25,7 @@ app.post("/webhooks/:psp", async (c) => {
   return proxy(c, body);
 });
 
-async function forwardWrite(c: any): Promise<Response> {
+async function forwardWrite(c: AppContext): Promise<Response> {
   const idemKey = c.req.header("idempotency-key");
   if (!idemKey) return c.json({ error: "Idempotency-Key is required" }, 400);
 
@@ -43,7 +45,7 @@ async function forwardWrite(c: any): Promise<Response> {
 
   const bodyHash = await sha256Hex(body);
   const kvKey = `idem:${idemKey}`;
-  const cached = await c.env.IDEMPOTENCY.get<IdempotencyRecord>(kvKey, "json");
+  const cached = await c.env.IDEMPOTENCY.get(kvKey, "json") as IdempotencyRecord | null;
   if (cached) {
     if (cached.bodyHash !== bodyHash) return c.json({ error: "idempotency key body mismatch" }, 422);
     return new Response(cached.responseBody, {
@@ -64,7 +66,7 @@ async function forwardWrite(c: any): Promise<Response> {
   return new Response(responseBody, response);
 }
 
-async function proxy(c: any, body: string): Promise<Response> {
+async function proxy(c: AppContext, body: string): Promise<Response> {
   const url = new URL(c.req.url);
   const upstream = new URL(url.pathname, c.env.ORCHESTRATOR_URL);
   const headers = new Headers(c.req.raw.headers);
@@ -77,4 +79,3 @@ async function proxy(c: any, body: string): Promise<Response> {
 }
 
 export default app;
-
