@@ -7,7 +7,7 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "hono": "^4.12.16"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260401.0",
